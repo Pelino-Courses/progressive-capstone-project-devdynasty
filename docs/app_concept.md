@@ -3,14 +3,14 @@
 ## Team Information
 - **Team Name:** DevDynasty
 - **App Name:** CampusCart
-- **Members:** [Your Full Name], [Teammate Full Name]
+- **Members:** ISHIMWE Crescent, KUBWIMANA Saido
 - **Date:** March 26, 2026
 
 ---
 
 ## Problem Statement
 
-Students at [Your University Name] face significant challenges when buying and selling items on campus due to the lack of a centralized, trustworthy marketplace platform. Current methods using WhatsApp and Instagram lead to price inconsistency, misleading product representations, no product verification, and inefficient search capabilities.
+Students at University of Rwanda face significant challenges when buying and selling items on campus due to the lack of a centralized, trustworthy marketplace platform. Current methods using WhatsApp and Instagram lead to price inconsistency, misleading product representations, no product verification, and inefficient search capabilities.
 
 ---
 
@@ -115,12 +115,3 @@ Wireframe images are available in the `wireframes/` folder:
 | Saved Searches | Save searches and get alerts when new items match |
 
 ---
-
-## AI Tools Used
-
-AI tools (ChatGPT) were used to:
-- Structure and format app concept documentation
-- Brainstorm feature ideas aligned with research findings
-- Create wireframe descriptions and user flow
-
-All app concept ideas, features, and problem-solution mappings are original and based on the team's field research.

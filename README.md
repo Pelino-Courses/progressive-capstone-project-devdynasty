@@ -122,21 +122,10 @@ Search & Categories
 
 ---
 
-## 🤖 AI Tools Used
-
-AI tools (ChatGPT) were used to:
-- Structure and format documentation
-- Organize research findings
-- Brainstorm feature ideas aligned with research
-- Create wireframe descriptions
-
-All research data, interviews, and friction points are original and based on real user interviews.
-
----
-
 ## 📧 Contact
 
 For any questions about this project, please reach out to the team.
+
 
 ---
 

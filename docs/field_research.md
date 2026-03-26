@@ -2,7 +2,7 @@
 
 ## Team Information
 - **Team Name:** DevDynasty
-- **Members:** [Your Full Name], [Teammate Full Name]
+- **Members:** ISHIMWE Crescent, KUBWIMANA Saido
 - **Date:** March 26, 2026
 
 ---
@@ -15,11 +15,11 @@ Each team member conducted independent field research consisting of:
 
 ---
 
-## Individual Research: [Your Full Name]
+## Individual Research: ISHIMWE Crescent
 
 ### Observation Notes
 - **Date:** March 26, 2026
-- **Time:** [Add time of observation, e.g., 2:30 PM]
+- **Time:** 2:30 PM
 - **Location:** Campus
 
 **Findings:**
@@ -64,33 +64,37 @@ Each team member conducted independent field research consisting of:
 
 ---
 
-## Individual Research: [Teammate Full Name]
+## Individual Research: KUBWIMANA Saido
 
 ### Observation Notes
-*[To be completed by teammate]*
 
-- **Date:** [Add date]
-- **Time:** [Add time]
-- **Location:** [Add location]
+
+- **Date:** March 26, 2026
+- **Time:** 4:30 PM – 5:15 PM
+- **Location:** Campus hostel common area and cafeteria
 
 **Findings:**
-*[Teammate to add their observation notes here]*
-
+-Students frequently browse items through WhatsApp statuses during breaks.
+-Most transactions begin informally (chat → negotiation → meetup).
+-Trust is a major concern—students often ask friends before buying.
+-Sellers tend to reuse images that don’t match actual product condition.
+-There is no fixed pricing—prices change depending on the buyer.
+Students prefer convenience (delivery to hostel or meeting nearby).
 ---
 
 ### User Interview
 
-**Interviewee:** [Name]  
-**Year:** [Year]  
-**Date:** [Date]
+**Interviewee:** Abdallah Ninziza
+**Year:** 2026 
+**Date:** March 26
 
 | Question | Response |
 |----------|---------|
-| Have you ever bought or sold items from other students? | [Response] |
-| What problems did you face when trying to buy or sell on campus? | [Response] |
-| How do you currently find items you need? | [Response] |
-| What would make it easier for you to buy and sell on campus? | [Response] |
-| Have you ever had a bad experience with buying or selling? | [Response] |
+| Have you ever bought or sold items from other students? | "Yes, I have bought shoes and a hoodie from other students. I have never sold anything myself, but I have considered it."|
+| What problems did you face when trying to buy or sell on campus? | "The biggest problem is trust. Sometimes the seller shows you something nice online, but when you meet, it’s different. Also, prices are not fixed—they change depending on how much they think you can pay." |
+| How do you currently find items you need? | "Mostly through WhatsApp status or group chats. Sometimes a friend recommends someone who is selling. There is no specific place to search, so you just wait and see what people post." |
+| What would make it easier for you to buy and sell on campus? | "If there was an app or website just for our campus where students post items with real pictures, fixed prices, and maybe reviews. It would also help if delivery was organized or at least safer meeting points." |
+| Have you ever had a bad experience with buying or selling? | "Yes, I once bought a jacket that looked new in the picture, but when I got it, it was clearly used and a bit damaged. I couldn’t return it, so I just kept it." |
 
 ---
 
@@ -98,11 +102,11 @@ Each team member conducted independent field research consisting of:
 
 | # | Friction Point | Direct Quote |
 |---|----------------|--------------|
-| 1 | [Friction point] | "[Direct quote]" |
-| 2 | [Friction point] | "[Direct quote]" |
-| 3 | [Friction point] | "[Direct quote]" |
-| 4 | [Friction point] | "[Direct quote]" |
-| 5 | [Friction point] | "[Direct quote]" |
+| 1 | Lack of trust in sellers and product authenticity | "Sometimes the seller shows you something nice online, but when you meet, it’s different." |
+| 2 | Unstable and negotiable pricing | "Prices are not fixed—they change depending on how much they think you can pay." |
+| 3 | No centralized marketplace platform | "There is no specific place to search, so you just wait and see what people post." |
+| 4 | Misleading product condition (used vs advertised as new) | "It looked new in the picture, but when I got it, it was clearly used and a bit damaged." |
+| 5 | No return policy or buyer protection | "I couldn’t return it, so I just kept it." |
 
 ---
 
@@ -110,20 +114,18 @@ Each team member conducted independent field research consisting of:
 
 ### Combined Friction Points
 
-*[To be completed after teammate submits their findings]*
-
 Based on both team members' research, the key friction points are:
-1. [Combine and summarize all friction points here]
-2. 
-3. 
-4. 
-5. 
+1. **Lack of trust and product authenticity** – Buyers cannot rely on sellers, and products often differ from what was advertised.
+2. **Price inconsistency and unfair negotiation** – Sellers change prices after initial posting or based on the buyer.
+3. **No centralized marketplace platform** – Students depend on WhatsApp statuses and group chats, making transactions scattered and unreliable.
+4. **Misleading product representation** – Use of fake, stock, or AI-generated images leads to incorrect expectations about product condition.
+5. **Inefficient discovery and lack of buyer protection** – No search system, no return policy, and no safeguards for buyers, leading to wasted time and money.
 
 ---
 
 ### Core Problem Statement
 
-> "Students at [Your University Name] face significant challenges when buying and selling items on campus due to the lack of a centralized, trustworthy marketplace platform. Current methods using WhatsApp and Instagram lead to price inconsistency (sellers inflating prices upon inquiry), misleading product representations (fake/stock images from Google or AI), no product verification, and inefficient search capabilities. These friction points result in wasted time, financial loss, and a frustrating user experience that discourages students from engaging in campus commerce."
+> "Students at our university face significant challenges when buying and selling items on campus due to the lack of a centralized, trustworthy marketplace platform. Current methods using WhatsApp and Instagram lead to price inconsistency (sellers inflating prices upon inquiry), misleading product representations (fake/stock images from Google or AI), no product verification, and inefficient search capabilities. These friction points result in wasted time, financial loss, and a frustrating user experience that discourages students from engaging in campus commerce."
 
 ---
 
@@ -136,19 +138,3 @@ Based on both team members' research, the key friction points are:
 | Resource constraints (time, budget) | MVP features focused on solving core problems within course timeline |
 
 ---
-
-## Evidence
-- Interview audio recording: [Add file reference or note that recording exists]
-- Interview transcription: [Add file reference]
-- Observation notes: [Add file reference]
-
----
-
-## AI Tools Used
-
-AI tools (ChatGPT) were used to:
-- Structure and format documentation
-- Organize research findings
-- Ensure completeness of deliverables
-
-All research data, interviews, and friction points are original and based on real user interviews.
