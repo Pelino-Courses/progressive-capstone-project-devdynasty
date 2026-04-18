@@ -1,139 +1,172 @@
-[![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=23275756)
-# 🛒 CampusCart - Campus Marketplace App
+# CampusCart — Campus Marketplace App
 
-## Team: DevDynasty
-
----
-
-## 📱 Project Overview
-
-**CampusCart** is a mobile marketplace application designed to connect students within their campus community for buying and selling items. The app addresses key problems students face when using current methods like WhatsApp and Instagram, including:
-
-- ❌ **Price inconsistency** (sellers inflating prices upon inquiry)
-- ❌ **Misleading product images** (fake/stock photos from Google or AI)
-- ❌ **No centralized platform** (disorganized WhatsApp groups and statuses)
-- ❌ **No product verification** (items don't match advertised)
-- ❌ **Inefficient search** (scrolling endlessly to find items)
-
-CampusCart provides a **trusted, centralized, and user-friendly** solution that makes campus commerce safe, transparent, and efficient.
+> Mini-Capstone Assignment One — Parts A through D
+> **Team:** DevDynasty
+> **Module:** Mobile Application Development (MAD)
+> **Submission Tag:** `mini-capstone-part-a-d`
 
 ---
 
-## 👥 Team Members
+## 📱 About
 
-| Name | Role |
-|------|------|
-| KUBWIMANA SAIDO | Project Lead, UI/UX Designer, GitHub Manager |
-| ISHIMWE CRESCENT | Research Lead, Documentation Lead |
+**CampusCart** is a Flutter-based mobile marketplace app designed for university students in Rwanda. It enables students to safely buy and sell items like textbooks, clothes, electronics, and furniture within their campus community.
 
----
-
-## 📁 Repository Structure
-DevDynasty/
-│
-├── README.md # This file - project overview
-│
-├── docs/ # 📄 Documentation folder
-│ ├── field_research.md # Field research findings & problem identification
-│ ├── app_concept.md # App concept, features, and specifications
-│ └── team_charter.md # Team roles, communication, and project roadmap
-│
-└── wireframes/ # 🎨 UI wireframes
-├── screen1_onboarding.jpg # Welcome/onboarding screen
-├── screen2_home.jpg # Home screen with search and categories
-├── screen3_product_details.jpg # Product details screen
-├── screen4_add_listing.jpg # Add new listing form
-└── screen5_chat.jpg # In-app chat screen
+The app addresses real friction points identified during field research:
+- Price inconsistency on WhatsApp listings
+- Misleading stock/AI-generated product photos
+- Lack of seller verification
+- Disorganized, inefficient search on existing channels
 
 ---
 
-## 🎯 Problem Statement
+## 👥 Team: DevDynasty
 
-Students at campus face significant challenges when buying and selling items due to the lack of a centralized, trustworthy marketplace platform. Current methods using WhatsApp and Instagram lead to:
-
-- **Price baiting** - Sellers post one price but increase it when a buyer shows interest
-- **Fake images** - Sellers use stock photos from Google or AI-generated images
-- **Disorganized communication** - Conversations get lost in WhatsApp chats
-- **No search functionality** - Students scroll endlessly to find specific items
-- **Trust issues** - No way to verify if sellers are reliable
+| Role | Member |
+|------|--------|
+| Developer / Research | [Saidu KUBWIMANA] |
+| Developer / Research | [Crescent ISHIMWE] |
 
 ---
 
-## 💡 Solution: CampusCart MVP Features
+## 🎯 Assignment Coverage
 
-| # | Feature | How It Solves the Problem |
-|---|---------|--------------------------|
-| 1 | **Product Listing with Fixed Price** | Eliminates price baiting by locking the listed price; buyers can make offers but original price remains visible |
-| 2 | **Search & Categories** | Students can search by keyword or browse categories (Books, Electronics, Clothing, Furniture) instead of scrolling through WhatsApp |
-| 3 | **Image Upload with Verification** | Sellers must upload real photos; system flags potential fake/stock images |
-| 4 | **User Ratings & Reviews** | Buyers rate sellers after transactions; trust badges for verified users |
-| 5 | **In-App Chat** | Built-in messaging replaces WhatsApp for negotiation and delivery coordination |
-
----
-
-## 🗺️ User Flow
-Onboarding → Sign Up/Login → Home Screen → Product Details → In-App Chat → Rate User
-↓
-Search & Categories
+| Part | Requirement | Location |
+|------|-------------|----------|
+| **Part A** | Dart fundamentals — variables, null safety, collections, functions | `campuscart/lib/dart_basics/` |
+| **Part B** | OOP & data models — classes, inheritance, mixins, async/await | `campuscart/lib/models/` & `campuscart/lib/services/` |
+| **Part C** | Flutter widgets & UI — layouts, custom widgets, Material Design 3 theme | `campuscart/lib/theme/`, `campuscart/lib/widgets/`, `campuscart/lib/screens/home_screen.dart` |
+| **Part D** | Navigation & forms — named routes, data passing, form validation | `campuscart/lib/main.dart` + `campuscart/lib/screens/` |
+| **Design** | 3-5 Google Stitch mockups + DESIGN.md | `stitch-mockups/` & `DESIGN.md` |
 
 ---
 
-## 📊 Success Criteria
-
-| Criteria | How We'll Achieve It |
-|----------|---------------------|
-| **Fully Functional App** | All 5 MVP features working properly |
-| **Clean UI/UX** | Intuitive navigation, consistent design language |
-| **Data Persistence** | SQLite database stores all listings and user data |
-| **Addresses Friction Points** | App solves price baiting, fake images, and disorganized selling |
-| **Polished Presentation** | Clear demo showing problem-solution fit |
-
----
-
-## 🛠️ Technology Stack
-
-| Technology | Purpose |
-|------------|---------|
-| **Flutter** | Cross-platform mobile app development |
-| **Dart** | Programming language |
-| **SQLite / sqflite** | Local database for data persistence |
-| **GitHub** | Version control and team collaboration |
-
----
-
-## 📅 Project Timeline
-
-| Phase | Week | Deliverables |
-|-------|------|--------------|
-| Ideation | Week 1-2 | Field research, problem identification, app concept |
-| Planning | Week 3-4 | Wireframes, team charter, project roadmap |
-| Development | Week 5-6 | Flutter setup, database, basic UI |
-| Development | Week 7-8 | CRUD operations, search, chat feature |
-| Testing & Polish | Week 9 | Bug fixes, UI polish, final presentation |
-
----
-
-## 📝 How to Navigate This Repository
-
-1. **Start with** `docs/field_research.md` to understand the research and user problems
-2. **Review** `docs/app_concept.md` for the app specification and features
-3. **Check** `wireframes/` folder for initial UI designs
-4. **Read** `docs/team_charter.md` for team collaboration details
-
----
-
-## 📧 Contact
-
-For any questions about this project, please reach out to the team.
-
+## 📂 Repository Structure
+progressive-capstone-project-devdynasty/
+├── campuscart/                      # Flutter project
+│   ├── lib/
+│   │   ├── dart_basics/             # Part A - Dart fundamentals demos
+│   │   │   ├── variables_demo.dart
+│   │   │   ├── collections_demo.dart
+│   │   │   └── functions_demo.dart
+│   │   ├── models/                  # Part B - Classes, inheritance, mixins
+│   │   │   ├── user.dart
+│   │   │   ├── seller.dart
+│   │   │   ├── buyer.dart
+│   │   │   ├── rateable.dart
+│   │   │   ├── timestamped.dart
+│   │   │   └── product.dart
+│   │   ├── services/                # Part B - Async/await
+│   │   │   └── product_service.dart
+│   │   ├── theme/                   # Part C - Material Design 3 theme
+│   │   │   └── app_theme.dart
+│   │   ├── widgets/                 # Part C - Custom reusable widgets
+│   │   │   ├── product_card.dart
+│   │   │   └── category_chip.dart
+│   │   ├── screens/                 # Parts C & D - UI screens
+│   │   │   ├── home_screen.dart
+│   │   │   ├── product_details_screen.dart
+│   │   │   └── add_listing_screen.dart
+│   │   ├── part_b_demo.dart         # Part B integrated demo
+│   │   └── main.dart                # App entry point + named routes
+│   └── pubspec.yaml
+├── docs/                            # Previous phase documentation
+│   ├── field_research.md
+│   ├── app_concept.md
+│   └── team_charter.md
+├── stitch-mockups/                  # Google Stitch mockups
+│   ├── home_screen.png
+│   ├── product_details.png
+│   ├── add_listing.png
+│   ├── login.png
+│   └── profile.png
+├── wireframes/                      # Earlier wireframes
+├── DESIGN.md                        # Design document
+└── README.md
 
 ---
 
-**Submission Date:** March 27, 2026
+## 🚀 Running the App
 
-**Course:** Mobile Application Development (MAD) - Level 3
+### Prerequisites
+- Flutter SDK installed (3.x)
+- Chrome browser (for web demo)
+- VS Code or Android Studio
+
+### Steps
+```bash
+# Clone the repo
+git clone <repo-url>
+cd progressive-capstone-project-devdynasty/campuscart
+
+# Install dependencies
+flutter pub get
+
+# Run on Chrome
+flutter run -d chrome
+```
+
+### Running individual Part A demos
+```bash
+dart run lib/dart_basics/variables_demo.dart
+dart run lib/dart_basics/collections_demo.dart
+dart run lib/dart_basics/functions_demo.dart
+```
+
+### Running Part B integrated demo
+```bash
+dart run lib/part_b_demo.dart
+```
 
 ---
 
-*CampusCart - Making Campus Commerce Simple & Trustworthy* 🛒✅
+## 🎥 Demo Video
 
+📺 **YouTube:** [Link will be added here after recording]
+
+---
+
+## 🧠 Key Concepts Demonstrated
+
+### Part A — Dart Fundamentals
+- Type-safe variables (`String`, `int`, `double`, `bool`)
+- Null safety operators (`?`, `!`, `??`, `??=`, `?.`)
+- Collections: `List`, `Map`, `Set`
+- Functions: arrow, named parameters, optional params, higher-order
+
+### Part B — OOP & Data Models
+- Base class `User` with `Seller` and `Buyer` extending it (inheritance)
+- `Rateable` and `Timestamped` mixins for shared behavior
+- `Product` class combining both mixins (`with Rateable, Timestamped`)
+- `ProductService` with `async`/`await` to simulate network calls
+
+### Part C — Flutter UI
+- Material Design 3 theme (seeded color scheme)
+- Custom reusable widgets (`ProductCard`, `CategoryChip`)
+- `StatefulWidget` for dynamic state (search, filter, loading)
+- Responsive layouts with `Column`, `Row`, `ListView`, `Expanded`
+
+### Part D — Navigation & Forms
+- Named routes declared in `MaterialApp.routes`
+- Data passing via `Navigator.pushNamed(..., arguments: ...)`
+- Returning results via `Navigator.pop(context, true)`
+- Form validation with `GlobalKey<FormState>` and field validators
+- Live validation with `AutovalidateMode.onUserInteraction`
+
+---
+
+## 🤖 AI Tools Disclosure
+
+As required by the assignment guidelines:
+
+| Tool | Purpose |
+|------|---------|
+| **Google Stitch** | Generated all 5 screen mockups from text prompts |
+| **Claude (Anthropic)** | Assisted with code structure, documentation, and explanations |
+
+All generated code was reviewed and understood by team members. All research (interviews, friction points, problem statement) is original and conducted by the team.
+
+---
+
+## 📝 License
+
+This project is submitted as part of coursework for the MAD module. Not intended for commercial distribution.
