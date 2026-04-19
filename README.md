@@ -121,7 +121,7 @@ dart run lib/part_b_demo.dart
 
 ## 🎥 Demo Video
 
-📺 **YouTube:** [Link will be added here after recording]
+📺 **YouTube:** (https://www.youtube.com/watch?v=B3nmN-iUDXs)
 
 ---
 
