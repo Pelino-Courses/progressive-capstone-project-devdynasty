@@ -8,6 +8,9 @@ import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
 import 'screens/product_details_screen.dart';
 import 'screens/add_listing_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/signup_screen.dart';
+import 'screens/profile_screen.dart';
 
 void main() {
   runApp(const CampusCartApp());
@@ -24,12 +27,15 @@ class CampusCartApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
 
       // ===== NAMED ROUTES =====
-      // The app starts at '/', and we can navigate to the others by name.
-      initialRoute: '/',
+      // App starts at /login. After signing in, user goes to / (home).
+      initialRoute: '/login',
       routes: {
+        '/login': (context) => const LoginScreen(),
+        '/signup': (context) => const SignUpScreen(),
         '/': (context) => const HomeScreen(),
         '/product-details': (context) => const ProductDetailsScreen(),
         '/add-listing': (context) => const AddListingScreen(),
+        '/profile': (context) => const ProfileScreen(),
       },
     );
   }

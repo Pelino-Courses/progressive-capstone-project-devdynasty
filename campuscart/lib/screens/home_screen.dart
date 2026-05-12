@@ -2,7 +2,7 @@
 // PART C - Flutter Widgets & UI
 // File: home_screen.dart
 // Purpose: Main home screen - search, categories, product list.
-// Updated in Part D to support named-route navigation.
+// Updated to support navigation to profile and other routes.
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -28,7 +28,6 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedCategory = 'All';
   bool _isLoading = true;
 
-  // Category data - label + icon
   final List<Map<String, dynamic>> _categories = [
     {'label': 'All', 'icon': Icons.apps},
     {'label': 'Books', 'icon': Icons.menu_book},
@@ -50,7 +49,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // Load products asynchronously using ProductService
   Future<void> _loadProducts() async {
     setState(() => _isLoading = true);
     final products = await _productService.fetchAllProducts();
@@ -61,7 +59,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // Filter products by selected category
   void _filterByCategory(String category) {
     setState(() {
       _selectedCategory = category;
@@ -74,7 +71,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // Filter products by search keyword
   void _searchProducts(String keyword) {
     setState(() {
       if (keyword.isEmpty) {
@@ -91,7 +87,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // ===== TOP APP BAR =====
       appBar: AppBar(
         title: const Row(
           children: [
@@ -107,11 +102,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-
-      // ===== MAIN BODY =====
       body: Column(
         children: [
-          // --- Search bar ---
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
@@ -132,8 +124,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-
-          // --- Category chips (horizontal scrollable row) ---
           SizedBox(
             height: 50,
             child: ListView.builder(
@@ -151,10 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
           ),
-
           const SizedBox(height: 8),
-
-          // --- Section title ---
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
@@ -180,8 +167,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-
-          // --- Product list ---
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -214,7 +199,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             return ProductCard(
                               product: _filteredProducts[index],
                               onTap: () {
-                                // Navigate to product details and pass the product
                                 Navigator.pushNamed(
                                   context,
                                   '/product-details',
@@ -229,25 +213,28 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
 
-      // ===== FLOATING ACTION BUTTON (Add New Listing) =====
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          // Navigate to add listing. When user returns, refresh products.
           final result = await Navigator.pushNamed(context, '/add-listing');
-          if (result == true) {
-            _loadProducts();
-          }
+          if (result == true) _loadProducts();
         },
         icon: const Icon(Icons.add),
         label: const Text('Post'),
         backgroundColor: AppTheme.primaryColor,
       ),
-
-      // ===== BOTTOM NAVIGATION BAR =====
       bottomNavigationBar: NavigationBar(
         selectedIndex: 0,
         onDestinationSelected: (index) {
-          // Placeholder for future navigation
+          if (index == 3) {
+            Navigator.pushNamed(context, '/profile');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('More navigation coming in next phases'),
+                duration: Duration(seconds: 1),
+              ),
+            );
+          }
         },
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
