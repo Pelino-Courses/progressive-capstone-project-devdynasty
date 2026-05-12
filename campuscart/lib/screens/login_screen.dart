@@ -1,13 +1,13 @@
 // ============================================================
-// CampusCart - Phase 1
+// CampusCart - Phase 1 (refactored in Phase 2)
 // File: login_screen.dart
-// Purpose: User login screen with email + password fields.
-//          Currently uses local validation only - Firebase Auth
-//          will be wired up in Phase 6.
+// Purpose: User login screen using UserProvider.
 // ============================================================
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../providers/user_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -35,7 +35,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if (value == null || value.trim().isEmpty) {
       return 'Email is required';
     }
-    // Simple email pattern
     final emailRegex = RegExp(r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,}$');
     if (!emailRegex.hasMatch(value.trim())) {
       return 'Enter a valid email address';
@@ -60,21 +59,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    // Simulate authentication delay (will be replaced with Firebase in Phase 6)
-    await Future.delayed(const Duration(seconds: 1));
+    // Use UserProvider to sign in
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final success = await userProvider.signIn(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
 
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✅ Welcome back!'),
-        backgroundColor: AppTheme.successColor,
-      ),
-    );
-
-    // Navigate to home, clearing all previous routes
-    Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('✅ Welcome back, ${userProvider.userName}!'),
+          backgroundColor: AppTheme.successColor,
+        ),
+      );
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ Sign in failed. Please try again.'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+    }
   }
 
   @override
@@ -92,8 +102,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 20),
-
-                  // ===== LOGO & BRANDING =====
                   Center(
                     child: Container(
                       width: 80,
@@ -129,10 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 40),
-
-                  // ===== WELCOME HEADING =====
                   const Text(
                     'Welcome back!',
                     style: TextStyle(
@@ -149,10 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: AppTheme.textSecondary,
                     ),
                   ),
-
                   const SizedBox(height: 28),
-
-                  // ===== EMAIL FIELD =====
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -163,8 +165,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     validator: _validateEmail,
                   ),
                   const SizedBox(height: 14),
-
-                  // ===== PASSWORD FIELD =====
                   TextFormField(
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
@@ -186,8 +186,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     validator: _validatePassword,
                   ),
-
-                  // ===== FORGOT PASSWORD =====
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
@@ -201,10 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text('Forgot Password?'),
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
-                  // ===== SIGN IN BUTTON =====
                   ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
@@ -224,10 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: TextStyle(fontSize: 16),
                           ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  // ===== DIVIDER =====
                   Row(
                     children: [
                       const Expanded(child: Divider()),
@@ -241,10 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const Expanded(child: Divider()),
                     ],
                   ),
-
                   const SizedBox(height: 16),
-
-                  // ===== GOOGLE SIGN IN =====
                   OutlinedButton.icon(
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -265,10 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 28),
-
-                  // ===== SIGN UP LINK =====
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

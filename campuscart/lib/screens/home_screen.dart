@@ -1,13 +1,13 @@
 // ============================================================
-// PART C - Flutter Widgets & UI
+// CampusCart - Refactored in Phase 2
 // File: home_screen.dart
-// Purpose: Main home screen - search, categories, product list.
-// Updated to support navigation to profile and other routes.
+// Purpose: Home screen now reads products from ProductProvider
+//          instead of managing its own state.
 // ============================================================
 
 import 'package:flutter/material.dart';
-import '../models/product.dart';
-import '../services/product_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/product_provider.dart';
 import '../widgets/product_card.dart';
 import '../widgets/category_chip.dart';
 import '../theme/app_theme.dart';
@@ -20,14 +20,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final ProductService _productService = ProductService();
   final TextEditingController _searchController = TextEditingController();
 
-  List<Product> _allProducts = [];
-  List<Product> _filteredProducts = [];
-  String _selectedCategory = 'All';
-  bool _isLoading = true;
-
+  // Category data - label + icon
   final List<Map<String, dynamic>> _categories = [
     {'label': 'All', 'icon': Icons.apps},
     {'label': 'Books', 'icon': Icons.menu_book},
@@ -40,7 +35,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadProducts();
+    // Load products through the provider when screen opens.
+    // We use WidgetsBinding to delay this until after the first build
+    // (you can't call Provider.of with listen: true in initState).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<ProductProvider>(context, listen: false);
+      if (provider.allProducts.isEmpty) {
+        provider.loadProducts();
+      }
+    });
   }
 
   @override
@@ -49,43 +52,11 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  Future<void> _loadProducts() async {
-    setState(() => _isLoading = true);
-    final products = await _productService.fetchAllProducts();
-    setState(() {
-      _allProducts = products;
-      _filteredProducts = products;
-      _isLoading = false;
-    });
-  }
-
-  void _filterByCategory(String category) {
-    setState(() {
-      _selectedCategory = category;
-      if (category == 'All') {
-        _filteredProducts = _allProducts;
-      } else {
-        _filteredProducts =
-            _allProducts.where((p) => p.category == category).toList();
-      }
-    });
-  }
-
-  void _searchProducts(String keyword) {
-    setState(() {
-      if (keyword.isEmpty) {
-        _filterByCategory(_selectedCategory);
-      } else {
-        _filteredProducts = _allProducts
-            .where((p) =>
-                p.title.toLowerCase().contains(keyword.toLowerCase()))
-            .toList();
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    // ✨ Watch the ProductProvider - this widget rebuilds when state changes
+    final productProvider = context.watch<ProductProvider>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Row(
@@ -104,11 +75,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
+          // --- Search bar ---
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
               controller: _searchController,
-              onChanged: _searchProducts,
+              onChanged: (value) => productProvider.setSearchQuery(value),
               decoration: InputDecoration(
                 hintText: 'Search products...',
                 prefixIcon: const Icon(Icons.search),
@@ -117,13 +89,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: const Icon(Icons.clear),
                         onPressed: () {
                           _searchController.clear();
-                          _searchProducts('');
+                          productProvider.clearSearch();
                         },
                       )
                     : null,
               ),
             ),
           ),
+
+          // --- Category chips ---
           SizedBox(
             height: 50,
             child: ListView.builder(
@@ -135,22 +109,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 return CategoryChip(
                   label: cat['label'],
                   icon: cat['icon'],
-                  isSelected: _selectedCategory == cat['label'],
-                  onTap: () => _filterByCategory(cat['label']),
+                  isSelected:
+                      productProvider.selectedCategory == cat['label'],
+                  onTap: () => productProvider.setCategory(cat['label']),
                 );
               },
             ),
           ),
+
           const SizedBox(height: 8),
+
+          // --- Section title ---
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _selectedCategory == 'All'
+                  productProvider.selectedCategory == 'All'
                       ? 'Recent Listings'
-                      : _selectedCategory,
+                      : productProvider.selectedCategory,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -158,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 Text(
-                  '${_filteredProducts.length} items',
+                  '${productProvider.filteredCount} items',
                   style: const TextStyle(
                     fontSize: 13,
                     color: AppTheme.textSecondary,
@@ -167,10 +145,12 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+
+          // --- Product list ---
           Expanded(
-            child: _isLoading
+            child: productProvider.isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : _filteredProducts.isEmpty
+                : productProvider.filteredProducts.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -192,17 +172,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       )
                     : RefreshIndicator(
-                        onRefresh: _loadProducts,
+                        onRefresh: () => productProvider.loadProducts(),
                         child: ListView.builder(
-                          itemCount: _filteredProducts.length,
+                          itemCount: productProvider.filteredProducts.length,
                           itemBuilder: (context, index) {
+                            final product =
+                                productProvider.filteredProducts[index];
                             return ProductCard(
-                              product: _filteredProducts[index],
+                              product: product,
                               onTap: () {
                                 Navigator.pushNamed(
                                   context,
                                   '/product-details',
-                                  arguments: _filteredProducts[index],
+                                  arguments: product,
                                 );
                               },
                             );
@@ -212,11 +194,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          final result = await Navigator.pushNamed(context, '/add-listing');
-          if (result == true) _loadProducts();
+          await Navigator.pushNamed(context, '/add-listing');
+          // ProductProvider auto-refreshes itself when addProduct is called,
+          // so no need to manually reload here anymore.
         },
         icon: const Icon(Icons.add),
         label: const Text('Post'),

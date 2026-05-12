@@ -1,12 +1,13 @@
 // ============================================================
-// CampusCart - Phase 1
+// CampusCart - Phase 1 (refactored in Phase 2)
 // File: signup_screen.dart
-// Purpose: New user registration screen with name, email,
-//          university, password, and confirm password.
+// Purpose: Registration screen using UserProvider.
 // ============================================================
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../providers/user_provider.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -38,62 +39,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  // ---- VALIDATORS ----
   String? _validateName(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Full name is required';
-    }
-    if (value.trim().length < 3) {
-      return 'Name must be at least 3 characters';
-    }
+    if (value == null || value.trim().isEmpty) return 'Full name is required';
+    if (value.trim().length < 3) return 'Name must be at least 3 characters';
     return null;
   }
 
   String? _validateEmail(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Email is required';
-    }
+    if (value == null || value.trim().isEmpty) return 'Email is required';
     final emailRegex = RegExp(r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,}$');
-    if (!emailRegex.hasMatch(value.trim())) {
-      return 'Enter a valid email address';
-    }
+    if (!emailRegex.hasMatch(value.trim())) return 'Enter a valid email address';
     return null;
   }
 
   String? _validateUniversity(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'University is required';
-    }
+    if (value == null || value.trim().isEmpty) return 'University is required';
     return null;
   }
 
   String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Password is required';
-    }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters';
-    }
-    if (!value.contains(RegExp(r'[A-Z]'))) {
-      return 'Include at least one uppercase letter';
-    }
-    if (!value.contains(RegExp(r'[0-9]'))) {
-      return 'Include at least one number';
-    }
+    if (value == null || value.isEmpty) return 'Password is required';
+    if (value.length < 6) return 'Password must be at least 6 characters';
+    if (!value.contains(RegExp(r'[A-Z]'))) return 'Include at least one uppercase letter';
+    if (!value.contains(RegExp(r'[0-9]'))) return 'Include at least one number';
     return null;
   }
 
   String? _validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please confirm your password';
-    }
-    if (value != _passwordController.text) {
-      return 'Passwords do not match';
-    }
+    if (value == null || value.isEmpty) return 'Please confirm your password';
+    if (value != _passwordController.text) return 'Passwords do not match';
     return null;
   }
 
-  // ---- SUBMIT ----
   Future<void> _handleSignUp() async {
     FocusScope.of(context).unfocus();
 
@@ -111,21 +88,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     setState(() => _isLoading = true);
 
-    // Simulate registration (will be replaced with Firebase Auth in Phase 6)
-    await Future.delayed(const Duration(seconds: 1));
+    // Use UserProvider to register
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final success = await userProvider.signUp(
+      fullName: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      university: _universityController.text.trim(),
+      password: _passwordController.text,
+    );
 
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✅ Account created successfully!'),
-        backgroundColor: AppTheme.successColor,
-      ),
-    );
-
-    // Navigate to home, clearing back-stack
-    Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('✅ Welcome to CampusCart, ${userProvider.userName}!'),
+          backgroundColor: AppTheme.successColor,
+        ),
+      );
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ Sign up failed. Please try again.'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+    }
   }
 
   @override
@@ -150,8 +140,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 8),
-
-                // ===== HEADING =====
                 const Text(
                   'Create Account',
                   style: TextStyle(
@@ -168,10 +156,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     color: AppTheme.textSecondary,
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
-                // ===== FULL NAME =====
                 _label('Full Name'),
                 TextFormField(
                   controller: _nameController,
@@ -182,8 +167,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   validator: _validateName,
                 ),
                 const SizedBox(height: 12),
-
-                // ===== EMAIL =====
                 _label('Student Email'),
                 TextFormField(
                   controller: _emailController,
@@ -195,8 +178,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   validator: _validateEmail,
                 ),
                 const SizedBox(height: 12),
-
-                // ===== UNIVERSITY =====
                 _label('University'),
                 TextFormField(
                   controller: _universityController,
@@ -207,8 +188,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   validator: _validateUniversity,
                 ),
                 const SizedBox(height: 12),
-
-                // ===== PASSWORD =====
                 _label('Password'),
                 TextFormField(
                   controller: _passwordController,
@@ -227,8 +206,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   validator: _validatePassword,
                 ),
                 const SizedBox(height: 12),
-
-                // ===== CONFIRM PASSWORD =====
                 _label('Confirm Password'),
                 TextFormField(
                   controller: _confirmPasswordController,
@@ -248,7 +225,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // ===== TERMS CHECKBOX =====
                 Row(
                   children: [
                     Checkbox(
@@ -272,10 +248,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 16),
-
-                // ===== SIGN UP BUTTON =====
                 ElevatedButton(
                   onPressed: _isLoading ? null : _handleSignUp,
                   style: ElevatedButton.styleFrom(
@@ -295,10 +268,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           style: TextStyle(fontSize: 16),
                         ),
                 ),
-
                 const SizedBox(height: 24),
-
-                // ===== SIGN IN LINK =====
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -320,7 +290,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 24),
               ],
             ),
@@ -330,7 +299,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Helper for consistent field labels
   Widget _label(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6, left: 4),

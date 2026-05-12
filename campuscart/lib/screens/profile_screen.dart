@@ -1,13 +1,14 @@
 // ============================================================
-// CampusCart - Phase 1
+// CampusCart - Refactored in Phase 2
 // File: profile_screen.dart
-// Purpose: User profile + My Listings + Sold Items.
-//          Uses TabBar for switching between tabs.
+// Purpose: User profile uses UserProvider for logged-in user info
+//          and ProductProvider for "My Listings".
 // ============================================================
 
 import 'package:flutter/material.dart';
-import '../models/product.dart';
-import '../services/product_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/user_provider.dart';
+import '../providers/product_provider.dart';
 import '../widgets/product_card.dart';
 import '../theme/app_theme.dart';
 
@@ -21,23 +22,23 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final ProductService _productService = ProductService();
 
-  // Mock user data (will come from Firebase Auth in Phase 6)
-  final String _userName = 'John Kalisa';
-  final String _university = 'University of Rwanda';
+  // Mock stats for now (real ones will come from database in Phase 3)
   final double _rating = 4.8;
   final int _totalSales = 12;
-  final int _activeListings = 5;
-
-  List<Product> _myListings = [];
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _loadMyListings();
+
+    // Make sure products are loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<ProductProvider>(context, listen: false);
+      if (provider.allProducts.isEmpty) {
+        provider.loadProducts();
+      }
+    });
   }
 
   @override
@@ -46,23 +47,13 @@ class _ProfileScreenState extends State<ProfileScreen>
     super.dispose();
   }
 
-  // For now we just load all products and pretend they belong to this user.
-  // In Phase 3 (SQLite) and Phase 7 (Firestore) we'll filter by sellerId.
-  Future<void> _loadMyListings() async {
-    setState(() => _isLoading = true);
-    final all = await _productService.fetchAllProducts();
-    setState(() {
-      _myListings = all;
-      _isLoading = false;
-    });
-  }
-
   void _handleLogout() {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Sign Out?'),
-        content: const Text('You will need to sign in again to access your account.'),
+        content: const Text(
+            'You will need to sign in again to access your account.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -72,9 +63,12 @@ class _ProfileScreenState extends State<ProfileScreen>
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
             ),
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              // Go to login, clearing back-stack
+              // Use UserProvider to sign out
+              await Provider.of<UserProvider>(context, listen: false)
+                  .signOut();
+              if (!mounted) return;
               Navigator.pushNamedAndRemoveUntil(
                   context, '/login', (route) => false);
             },
@@ -87,6 +81,20 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
+    // ✨ Read both providers
+    final userProvider = context.watch<UserProvider>();
+    final productProvider = context.watch<ProductProvider>();
+
+    // Use real user data from provider
+    final userName = userProvider.userName;
+    final userUniversity = userProvider.userUniversity.isEmpty
+        ? 'University of Rwanda'
+        : userProvider.userUniversity;
+
+    // Use real product data from provider (all products for now)
+    final myListings = productProvider.allProducts;
+    final activeListings = myListings.length;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Profile'),
@@ -115,12 +123,11 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
             child: Column(
               children: [
-                // Avatar
                 CircleAvatar(
                   radius: 40,
                   backgroundColor: Colors.white,
                   child: Text(
-                    _userName[0],
+                    userName.isNotEmpty ? userName[0].toUpperCase() : 'G',
                     style: const TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -129,13 +136,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                 ),
                 const SizedBox(height: 12),
-
-                // Name + Verified badge
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _userName,
+                      userName,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -148,18 +153,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ],
                 ),
                 const SizedBox(height: 4),
-
-                // University
                 Text(
-                  _university,
+                  userUniversity,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white.withOpacity(0.9),
                   ),
                 ),
                 const SizedBox(height: 4),
-
-                // Verified Seller text
                 Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 10, vertical: 4),
@@ -187,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             child: Row(
               children: [
                 _statCard('Sales', '$_totalSales', Icons.shopping_bag_outlined),
-                _statCard('Listings', '$_activeListings', Icons.list_alt),
+                _statCard('Listings', '$activeListings', Icons.list_alt),
                 _statCard('Rating', '$_rating', Icons.star, isLast: true),
               ],
             ),
@@ -236,32 +237,29 @@ class _ProfileScreenState extends State<ProfileScreen>
 
           // ===== TAB CONTENT =====
           Expanded(
-            child: _isLoading
+            child: productProvider.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : TabBarView(
                     controller: _tabController,
                     children: [
-                      // --- MY LISTINGS TAB ---
-                      _myListings.isEmpty
+                      myListings.isEmpty
                           ? _emptyState('No listings yet',
                               'Tap the + button to add your first product')
                           : ListView.builder(
-                              itemCount: _myListings.length,
+                              itemCount: myListings.length,
                               itemBuilder: (context, index) {
                                 return ProductCard(
-                                  product: _myListings[index],
+                                  product: myListings[index],
                                   onTap: () {
                                     Navigator.pushNamed(
                                       context,
                                       '/product-details',
-                                      arguments: _myListings[index],
+                                      arguments: myListings[index],
                                     );
                                   },
                                 );
                               },
                             ),
-
-                      // --- SOLD ITEMS TAB ---
                       _emptyState('No sold items yet',
                           'Items you sell will appear here'),
                     ],
@@ -269,12 +267,9 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         ],
       ),
-
-      // ===== FAB =====
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final result = await Navigator.pushNamed(context, '/add-listing');
-          if (result == true) _loadMyListings();
+        onPressed: () {
+          Navigator.pushNamed(context, '/add-listing');
         },
         icon: const Icon(Icons.add),
         label: const Text('New Listing'),
@@ -282,7 +277,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // Helper - one stat card
   Widget _statCard(String label, String value, IconData icon,
       {bool isLast = false}) {
     return Expanded(
@@ -319,7 +313,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // Helper - empty state widget
   Widget _emptyState(String title, String subtitle) {
     return Center(
       child: Column(
