@@ -1,24 +1,52 @@
 // ============================================================
-// PART B - OOP & Data Models
+// CampusCart - Refactored in Phase 3
 // File: product.dart
-// Purpose: Product class demonstrating mixins (Rateable + Timestamped)
+// Purpose: Product class with Hive annotations for persistence.
 // ============================================================
 
+import 'package:hive/hive.dart';
 import 'rateable.dart';
 import 'timestamped.dart';
 
-// 'with' keyword applies mixins to this class
-class Product with Rateable, Timestamped {
+// This 'part' tells Dart that auto-generated code lives in product.g.dart
+// We'll generate that file in the next step.
+part 'product.g.dart';
+
+// 'typeId' is a unique number that identifies this class in Hive storage.
+// Every Hive-stored class needs a unique typeId (0-223 range).
+@HiveType(typeId: 0)
+class Product extends HiveObject with Rateable, Timestamped {
+  @HiveField(0)
   final String id;
+
+  @HiveField(1)
   final String title;
+
+  @HiveField(2)
   final String description;
+
+  @HiveField(3)
   final int priceInRwf;
+
+  @HiveField(4)
   final String category;
-  final String condition; // 'New', 'Like New', 'Good', 'Fair', 'Used'
+
+  @HiveField(5)
+  final String condition;
+
+  @HiveField(6)
   final String sellerId;
+
+  @HiveField(7)
   final String sellerName;
+
+  @HiveField(8)
   final String location;
+
+  @HiveField(9)
   String? imageUrl;
+
+  @HiveField(10)
   bool isAvailable;
 
   Product({
@@ -35,14 +63,13 @@ class Product with Rateable, Timestamped {
     this.isAvailable = true,
   });
 
-  // Mark as sold - uses markUpdated from Timestamped mixin
+  // Mark as sold
   void markAsSold() {
     isAvailable = false;
     markUpdated(); // from Timestamped mixin
-    print('$title has been marked as SOLD');
   }
 
-  // Reduce price (seller discount)
+  // Helper to create a modified copy
   Product copyWithNewPrice(int newPrice) {
     return Product(
       id: id,
@@ -59,7 +86,7 @@ class Product with Rateable, Timestamped {
     );
   }
 
-  // A complete summary using features from BOTH mixins
+  // Full summary using mixin features
   String fullSummary() {
     return '''
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

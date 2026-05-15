@@ -1,13 +1,15 @@
 // ============================================================
 // CampusCart - Entry Point
 // Team: DevDynasty
-// Phase 2: Added Provider state management
+// Phase 3: Hive initialization with seeding flag box
 // ============================================================
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import 'theme/app_theme.dart';
+import 'models/product.dart';
 import 'providers/product_provider.dart';
 import 'providers/user_provider.dart';
 
@@ -18,7 +20,17 @@ import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/profile_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // ===== INITIALIZE HIVE =====
+  await Hive.initFlutter();
+  Hive.registerAdapter(ProductAdapter());
+
+  // Open boxes
+  await Hive.openBox<Product>('products');
+  await Hive.openBox('meta'); // for app-level flags like 'hasSeeded'
+
   runApp(const CampusCartApp());
 }
 
@@ -27,8 +39,6 @@ class CampusCartApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ===== PROVIDERS WRAP THE ENTIRE APP =====
-    // MultiProvider lets us register multiple providers at once.
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ProductProvider()),

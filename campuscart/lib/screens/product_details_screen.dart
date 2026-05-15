@@ -1,20 +1,66 @@
 // ============================================================
-// PART D - Navigation & Forms
+// CampusCart - Refactored in Phase 3
 // File: product_details_screen.dart
-// Purpose: Shows full details of a product. Receives Product
-//          via named route arguments.
+// Purpose: Product details with edit/delete actions for owner.
 // ============================================================
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/product.dart';
+import '../providers/product_provider.dart';
 import '../theme/app_theme.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
   const ProductDetailsScreen({super.key});
 
+  Future<void> _confirmDelete(BuildContext context, Product product) async {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete this listing?'),
+        content: const Text(
+            'This action cannot be undone. The product will be permanently removed.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx); // close the dialog
+              final success =
+                  await Provider.of<ProductProvider>(context, listen: false)
+                      .deleteProduct(product.id);
+              if (!context.mounted) return;
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ Listing deleted'),
+                    backgroundColor: AppTheme.successColor,
+                  ),
+                );
+                Navigator.pop(context); // go back to home
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('❌ Failed to delete listing'),
+                    backgroundColor: AppTheme.errorColor,
+                  ),
+                );
+              }
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // ✨ Retrieve the Product passed via route arguments
     final product = ModalRoute.of(context)!.settings.arguments as Product;
 
     return Scaffold(
@@ -29,13 +75,19 @@ class ProductDetailsScreen extends StatelessWidget {
               );
             },
           ),
+          // ===== DELETE BUTTON =====
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: 'Delete listing',
+            onPressed: () => _confirmDelete(context, product),
+          ),
         ],
       ),
+
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Product image area ---
             Container(
               height: 280,
               width: double.infinity,
@@ -46,16 +98,12 @@ class ProductDetailsScreen extends StatelessWidget {
                 color: AppTheme.primaryColor.withOpacity(0.6),
               ),
             ),
-
             const SizedBox(height: 16),
-
-            // --- Main info ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title
                   Text(
                     product.title,
                     style: const TextStyle(
@@ -64,10 +112,7 @@ class ProductDetailsScreen extends StatelessWidget {
                       color: AppTheme.textPrimary,
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
-                  // Price + condition badge
                   Row(
                     children: [
                       Text(
@@ -97,12 +142,9 @@ class ProductDetailsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 12),
-
-                  // Description
                   const Text(
                     'Description',
                     style: TextStyle(
@@ -120,12 +162,9 @@ class ProductDetailsScreen extends StatelessWidget {
                       height: 1.5,
                     ),
                   ),
-
                   const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 12),
-
-                  // Seller info card
                   const Text(
                     'Seller Information',
                     style: TextStyle(
@@ -204,10 +243,7 @@ class ProductDetailsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 12),
-
-                  // Location and date
                   Row(
                     children: [
                       const Icon(Icons.location_on_outlined,
@@ -233,7 +269,6 @@ class ProductDetailsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 24),
                 ],
               ),
@@ -242,7 +277,6 @@ class ProductDetailsScreen extends StatelessWidget {
         ),
       ),
 
-      // --- Bottom action bar (Chat + Make Offer) ---
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -263,8 +297,8 @@ class ProductDetailsScreen extends StatelessWidget {
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                          content:
-                              Text('Opening chat with ${product.sellerName}...')),
+                          content: Text(
+                              'Opening chat with ${product.sellerName}...')),
                     );
                   },
                   icon: const Icon(Icons.chat_outlined),
