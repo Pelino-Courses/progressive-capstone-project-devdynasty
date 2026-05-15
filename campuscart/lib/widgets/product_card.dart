@@ -1,12 +1,13 @@
 // ============================================================
-// PART C - Custom Widget (Updated in Phase 4 for image display)
+// Phase 5 - ProductCard with favorite (heart) button
 // File: product_card.dart
-// Purpose: Reusable card displaying a single Product.
 // ============================================================
 
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/product.dart';
+import '../providers/product_provider.dart';
 import '../theme/app_theme.dart';
 
 class ProductCard extends StatelessWidget {
@@ -21,6 +22,10 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Watch the provider so the heart icon updates instantly when toggled
+    final productProvider = context.watch<ProductProvider>();
+    final isFavorite = productProvider.isFavorite(product);
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       clipBehavior: Clip.antiAlias,
@@ -60,15 +65,40 @@ class ProductCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      product.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            product.title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        // ===== HEART (FAVORITE) BUTTON =====
+                        GestureDetector(
+                          onTap: () {
+                            productProvider.toggleFavorite(product);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 4),
+                            child: Icon(
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: isFavorite
+                                  ? AppTheme.errorColor
+                                  : AppTheme.textSecondary,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Row(

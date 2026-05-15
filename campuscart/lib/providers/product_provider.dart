@@ -1,36 +1,62 @@
 // ============================================================
-// CampusCart - Phase 3 (clean version)
+// CampusCart - Phase 5 (persistent favorites + filters)
 // File: product_provider.dart
-// Purpose: Centralized state for products, backed by Hive.
 // ============================================================
 
 import 'package:flutter/foundation.dart';
 import '../models/product.dart';
 import '../database/product_database.dart';
 
+// Sort options for advanced filtering
+enum ProductSort {
+  newest,
+  priceLowToHigh,
+  priceHighToLow,
+  titleAZ,
+}
+
 class ProductProvider with ChangeNotifier {
   final ProductDatabase _db = ProductDatabase();
 
   List<Product> _allProducts = [];
-  List<Product> _favorites = [];
   bool _isLoading = false;
   String? _errorMessage;
+
+  // Filter state
   String _selectedCategory = 'All';
   String _searchQuery = '';
+  int? _minPrice;
+  int? _maxPrice;
+  String? _conditionFilter;
+  ProductSort _sortBy = ProductSort.newest;
 
   // ===== GETTERS =====
   List<Product> get allProducts => _allProducts;
-  List<Product> get favorites => _favorites;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   String get selectedCategory => _selectedCategory;
   String get searchQuery => _searchQuery;
+  int? get minPrice => _minPrice;
+  int? get maxPrice => _maxPrice;
+  String? get conditionFilter => _conditionFilter;
+  ProductSort get sortBy => _sortBy;
+
+  // True if any non-default filter is active
+  bool get hasActiveFilters =>
+      _minPrice != null ||
+      _maxPrice != null ||
+      _conditionFilter != null ||
+      _sortBy != ProductSort.newest;
 
   List<Product> get filteredProducts {
     List<Product> result = _allProducts;
+
+    // Category filter
     if (_selectedCategory != 'All') {
       result = result.where((p) => p.category == _selectedCategory).toList();
     }
+
+    // Search filter
     if (_searchQuery.isNotEmpty) {
       result = result
           .where((p) =>
@@ -40,10 +66,45 @@ class ProductProvider with ChangeNotifier {
                   .contains(_searchQuery.toLowerCase()))
           .toList();
     }
+
+    // Price range filter
+    if (_minPrice != null) {
+      result = result.where((p) => p.priceInRwf >= _minPrice!).toList();
+    }
+    if (_maxPrice != null) {
+      result = result.where((p) => p.priceInRwf <= _maxPrice!).toList();
+    }
+
+    // Condition filter
+    if (_conditionFilter != null) {
+      result =
+          result.where((p) => p.condition == _conditionFilter).toList();
+    }
+
+    // Sorting
+    switch (_sortBy) {
+      case ProductSort.newest:
+        result.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
+      case ProductSort.priceLowToHigh:
+        result.sort((a, b) => a.priceInRwf.compareTo(b.priceInRwf));
+        break;
+      case ProductSort.priceHighToLow:
+        result.sort((a, b) => b.priceInRwf.compareTo(a.priceInRwf));
+        break;
+      case ProductSort.titleAZ:
+        result.sort(
+            (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+        break;
+    }
+
     return result;
   }
 
   int get filteredCount => filteredProducts.length;
+
+  List<Product> get favoriteProducts => _db.getFavoriteProducts();
+  int get favoritesCount => _db.getFavoriteIds().length;
 
   // ===== LOAD =====
   Future<void> loadProducts() async {
@@ -161,12 +222,6 @@ class ProductProvider with ChangeNotifier {
     return _db.getProductsBySeller(sellerId);
   }
 
-  Future<void> resetDatabase() async {
-    await _db.clearAll();
-    _allProducts = [];
-    notifyListeners();
-  }
-
   // ===== FILTERS =====
   void setCategory(String category) {
     _selectedCategory = category;
@@ -183,17 +238,35 @@ class ProductProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // ===== FAVORITES =====
-  void toggleFavorite(Product product) {
-    if (_favorites.any((p) => p.id == product.id)) {
-      _favorites.removeWhere((p) => p.id == product.id);
-    } else {
-      _favorites.add(product);
-    }
+  void setPriceRange({int? min, int? max}) {
+    _minPrice = min;
+    _maxPrice = max;
     notifyListeners();
   }
 
-  bool isFavorite(Product product) {
-    return _favorites.any((p) => p.id == product.id);
+  void setConditionFilter(String? condition) {
+    _conditionFilter = condition;
+    notifyListeners();
+  }
+
+  void setSortBy(ProductSort sort) {
+    _sortBy = sort;
+    notifyListeners();
+  }
+
+  void resetFilters() {
+    _minPrice = null;
+    _maxPrice = null;
+    _conditionFilter = null;
+    _sortBy = ProductSort.newest;
+    notifyListeners();
+  }
+
+  // ===== FAVORITES =====
+  bool isFavorite(Product product) => _db.isFavorite(product.id);
+
+  Future<void> toggleFavorite(Product product) async {
+    await _db.toggleFavorite(product.id);
+    notifyListeners();
   }
 }

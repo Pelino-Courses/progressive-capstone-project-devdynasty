@@ -1,7 +1,7 @@
 // ============================================================
 // CampusCart - Entry Point
 // Team: DevDynasty
-// Phase 3: Hive initialization with seeding flag box
+// Phase 5: Added favorites route
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -19,6 +19,7 @@ import 'screens/add_listing_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/favorites_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,9 +28,10 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(ProductAdapter());
 
-  // Open boxes
+  // Open all boxes the app needs
   await Hive.openBox<Product>('products');
-  await Hive.openBox('meta'); // for app-level flags like 'hasSeeded'
+  await Hive.openBox('meta');
+  await Hive.openBox<String>('favorites');
 
   runApp(const CampusCartApp());
 }
@@ -57,6 +59,7 @@ class CampusCartApp extends StatelessWidget {
           '/product-details': (context) => const ProductDetailsScreen(),
           '/add-listing': (context) => const AddListingScreen(),
           '/profile': (context) => const ProfileScreen(),
+          '/favorites': (context) => const FavoritesScreen(),
         },
       ),
     );
