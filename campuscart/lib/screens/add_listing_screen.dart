@@ -1,12 +1,13 @@
 // ============================================================
-// PART D - Refactored in Phase 2
+// PART D - Refactored in Phase 4 (with image picker)
 // File: add_listing_screen.dart
-// Purpose: Form screen to add a new product listing.
-//          Now posts via ProductProvider so home auto-refreshes.
+// Purpose: Add new listing form with real image upload.
 // ============================================================
 
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/product.dart';
 import '../providers/product_provider.dart';
 import '../theme/app_theme.dart';
@@ -28,8 +29,11 @@ class _AddListingScreenState extends State<AddListingScreen> {
 
   String? _selectedCategory;
   String? _selectedCondition;
+  Uint8List? _selectedImageBytes; // 🆕 holds the picked image
 
   bool _isSubmitting = false;
+
+  final ImagePicker _picker = ImagePicker();
 
   final List<String> _categories = [
     'Books',
@@ -56,10 +60,90 @@ class _AddListingScreenState extends State<AddListingScreen> {
     super.dispose();
   }
 
-  String? _validateTitle(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Product title is required';
+  // ===== IMAGE PICKING =====
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
+      );
+
+      if (pickedFile == null) return;
+
+      // Read the file as bytes (works on web AND mobile)
+      final bytes = await pickedFile.readAsBytes();
+
+      setState(() {
+        _selectedImageBytes = bytes;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to pick image: $e'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
     }
+  }
+
+  void _removeImage() {
+    setState(() {
+      _selectedImageBytes = null;
+    });
+  }
+
+  void _showImageSourceMenu() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined,
+                  color: AppTheme.primaryColor),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined,
+                  color: AppTheme.primaryColor),
+              title: const Text('Take a Photo'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ===== VALIDATORS =====
+  String? _validateTitle(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Product title is required';
     if (value.trim().length < 3) return 'Title must be at least 3 characters';
     if (value.trim().length > 60) return 'Title must be under 60 characters';
     return null;
@@ -67,9 +151,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
 
   String? _validateDescription(String? value) {
     if (value == null || value.trim().isEmpty) return 'Description is required';
-    if (value.trim().length < 10) {
-      return 'Description must be at least 10 characters';
-    }
+    if (value.trim().length < 10) return 'Description must be at least 10 characters';
     return null;
   }
 
@@ -92,6 +174,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
     return null;
   }
 
+  // ===== SUBMIT =====
   Future<void> _submitForm() async {
     FocusScope.of(context).unfocus();
 
@@ -117,9 +200,9 @@ class _AddListingScreenState extends State<AddListingScreen> {
       sellerId: 'S001',
       sellerName: 'You',
       location: _locationController.text.trim(),
+      imageBytes: _selectedImageBytes?.toList(), // 🆕 save image
     );
 
-    // Submit via ProductProvider - home screen will auto-refresh!
     final success =
         await Provider.of<ProductProvider>(context, listen: false)
             .addProduct(newProduct);
@@ -161,28 +244,73 @@ class _AddListingScreenState extends State<AddListingScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Container(
-              height: 160,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.grey.shade400,
-                  style: BorderStyle.solid,
-                  width: 2,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_a_photo,
-                      size: 40, color: Colors.grey.shade600),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Add Photos (coming in Phase 4)',
-                    style: TextStyle(color: Colors.grey.shade700),
+            // ===== IMAGE UPLOAD AREA =====
+            GestureDetector(
+              onTap: _showImageSourceMenu,
+              child: Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _selectedImageBytes == null
+                        ? Colors.grey.shade400
+                        : AppTheme.primaryColor,
+                    width: 2,
                   ),
-                ],
+                ),
+                child: _selectedImageBytes == null
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add_a_photo,
+                              size: 40, color: Colors.grey.shade600),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Tap to add a photo',
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          Text(
+                            'Gallery or Camera',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.memory(
+                              _selectedImageBytes!,
+                              width: double.infinity,
+                              height: 200,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: _removeImage,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black54,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
               ),
             ),
             const SizedBox(height: 20),

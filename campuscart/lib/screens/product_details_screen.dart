@@ -1,9 +1,10 @@
 // ============================================================
-// CampusCart - Refactored in Phase 3
+// CampusCart - Refactored in Phase 4 (with image display)
 // File: product_details_screen.dart
-// Purpose: Product details with edit/delete actions for owner.
+// Purpose: Product details with edit/delete actions and image.
 // ============================================================
 
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/product.dart';
@@ -30,7 +31,7 @@ class ProductDetailsScreen extends StatelessWidget {
               backgroundColor: AppTheme.errorColor,
             ),
             onPressed: () async {
-              Navigator.pop(ctx); // close the dialog
+              Navigator.pop(ctx);
               final success =
                   await Provider.of<ProductProvider>(context, listen: false)
                       .deleteProduct(product.id);
@@ -42,7 +43,7 @@ class ProductDetailsScreen extends StatelessWidget {
                     backgroundColor: AppTheme.successColor,
                   ),
                 );
-                Navigator.pop(context); // go back to home
+                Navigator.pop(context);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -75,7 +76,6 @@ class ProductDetailsScreen extends StatelessWidget {
               );
             },
           ),
-          // ===== DELETE BUTTON =====
           IconButton(
             icon: const Icon(Icons.delete_outline),
             tooltip: 'Delete listing',
@@ -88,15 +88,23 @@ class ProductDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ===== PRODUCT IMAGE OR ICON =====
             Container(
               height: 280,
               width: double.infinity,
               color: Colors.grey.shade200,
-              child: Icon(
-                _categoryIcon(product.category),
-                size: 120,
-                color: AppTheme.primaryColor.withOpacity(0.6),
-              ),
+              child: product.hasImage
+                  ? Image.memory(
+                      Uint8List.fromList(product.imageBytes!),
+                      width: double.infinity,
+                      height: 280,
+                      fit: BoxFit.cover,
+                    )
+                  : Icon(
+                      _categoryIcon(product.category),
+                      size: 120,
+                      color: AppTheme.primaryColor.withOpacity(0.6),
+                    ),
             ),
             const SizedBox(height: 16),
             Padding(

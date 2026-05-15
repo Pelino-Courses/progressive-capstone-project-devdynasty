@@ -1,16 +1,17 @@
 // ============================================================
-// PART C - Custom Widget
+// PART C - Custom Widget (Updated in Phase 4 for image display)
 // File: product_card.dart
 // Purpose: Reusable card displaying a single Product.
 // ============================================================
 
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../theme/app_theme.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
-  final VoidCallback? onTap; // called when the card is tapped
+  final VoidCallback? onTap;
 
   const ProductCard({
     super.key,
@@ -24,35 +25,41 @@ class ProductCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: onTap, // makes the card tappable with ripple effect
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- Product image placeholder ---
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
+              // ===== PRODUCT IMAGE OR ICON =====
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 80,
+                  height: 80,
                   color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  _categoryIcon(product.category),
-                  size: 40,
-                  color: AppTheme.primaryColor,
+                  child: product.hasImage
+                      ? Image.memory(
+                          Uint8List.fromList(product.imageBytes!),
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        )
+                      : Icon(
+                          _categoryIcon(product.category),
+                          size: 40,
+                          color: AppTheme.primaryColor,
+                        ),
                 ),
               ),
 
               const SizedBox(width: 12),
 
-              // --- Product info ---
+              // ===== PRODUCT INFO =====
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title
                     Text(
                       product.title,
                       style: const TextStyle(
@@ -63,10 +70,7 @@ class ProductCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-
                     const SizedBox(height: 4),
-
-                    // Price + condition badge
                     Row(
                       children: [
                         Text(
@@ -96,10 +100,7 @@ class ProductCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 6),
-
-                    // Seller
                     Row(
                       children: [
                         const Icon(Icons.person,
@@ -117,10 +118,7 @@ class ProductCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 2),
-
-                    // Location
                     Row(
                       children: [
                         const Icon(Icons.location_on_outlined,
@@ -148,7 +146,6 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  // Helper - returns an icon based on product category
   IconData _categoryIcon(String category) {
     switch (category) {
       case 'Books':

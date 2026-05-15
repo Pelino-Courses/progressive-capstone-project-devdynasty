@@ -1,19 +1,15 @@
 // ============================================================
-// CampusCart - Refactored in Phase 3
+// CampusCart - Refactored in Phase 4
 // File: product.dart
-// Purpose: Product class with Hive annotations for persistence.
+// Purpose: Product class with image data support.
 // ============================================================
 
 import 'package:hive/hive.dart';
 import 'rateable.dart';
 import 'timestamped.dart';
 
-// This 'part' tells Dart that auto-generated code lives in product.g.dart
-// We'll generate that file in the next step.
 part 'product.g.dart';
 
-// 'typeId' is a unique number that identifies this class in Hive storage.
-// Every Hive-stored class needs a unique typeId (0-223 range).
 @HiveType(typeId: 0)
 class Product extends HiveObject with Rateable, Timestamped {
   @HiveField(0)
@@ -49,6 +45,10 @@ class Product extends HiveObject with Rateable, Timestamped {
   @HiveField(10)
   bool isAvailable;
 
+  // 🆕 NEW FIELD - stores the actual image bytes (works on web & mobile)
+  @HiveField(11)
+  List<int>? imageBytes;
+
   Product({
     required this.id,
     required this.title,
@@ -61,15 +61,17 @@ class Product extends HiveObject with Rateable, Timestamped {
     required this.location,
     this.imageUrl,
     this.isAvailable = true,
+    this.imageBytes,
   });
 
-  // Mark as sold
+  // Returns true if the product has a real image
+  bool get hasImage => imageBytes != null && imageBytes!.isNotEmpty;
+
   void markAsSold() {
     isAvailable = false;
-    markUpdated(); // from Timestamped mixin
+    markUpdated();
   }
 
-  // Helper to create a modified copy
   Product copyWithNewPrice(int newPrice) {
     return Product(
       id: id,
@@ -83,10 +85,10 @@ class Product extends HiveObject with Rateable, Timestamped {
       location: location,
       imageUrl: imageUrl,
       isAvailable: isAvailable,
+      imageBytes: imageBytes,
     );
   }
 
-  // Full summary using mixin features
   String fullSummary() {
     return '''
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
