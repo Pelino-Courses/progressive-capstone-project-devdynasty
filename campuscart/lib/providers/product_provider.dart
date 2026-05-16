@@ -1,13 +1,16 @@
 // ============================================================
-// CampusCart - Phase 5 (persistent favorites + filters)
+// CampusCart - Phase 7 (Firestore-backed products)
 // File: product_provider.dart
+// Purpose: Products now sync via Cloud Firestore in real-time.
+//          Favorites still use local Hive.
 // ============================================================
 
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/product.dart';
 import '../database/product_database.dart';
+import '../services/product_firestore_service.dart';
 
-// Sort options for advanced filtering
 enum ProductSort {
   newest,
   priceLowToHigh,
@@ -16,7 +19,10 @@ enum ProductSort {
 }
 
 class ProductProvider with ChangeNotifier {
-  final ProductDatabase _db = ProductDatabase();
+  final ProductDatabase _localDb = ProductDatabase(); // for favorites only
+  final ProductFirestoreService _firestore = ProductFirestoreService();
+
+  StreamSubscription<List<Product>>? _productsSubscription;
 
   List<Product> _allProducts = [];
   bool _isLoading = false;
@@ -41,7 +47,6 @@ class ProductProvider with ChangeNotifier {
   String? get conditionFilter => _conditionFilter;
   ProductSort get sortBy => _sortBy;
 
-  // True if any non-default filter is active
   bool get hasActiveFilters =>
       _minPrice != null ||
       _maxPrice != null ||
@@ -51,12 +56,10 @@ class ProductProvider with ChangeNotifier {
   List<Product> get filteredProducts {
     List<Product> result = _allProducts;
 
-    // Category filter
     if (_selectedCategory != 'All') {
       result = result.where((p) => p.category == _selectedCategory).toList();
     }
 
-    // Search filter
     if (_searchQuery.isNotEmpty) {
       result = result
           .where((p) =>
@@ -67,7 +70,6 @@ class ProductProvider with ChangeNotifier {
           .toList();
     }
 
-    // Price range filter
     if (_minPrice != null) {
       result = result.where((p) => p.priceInRwf >= _minPrice!).toList();
     }
@@ -75,13 +77,11 @@ class ProductProvider with ChangeNotifier {
       result = result.where((p) => p.priceInRwf <= _maxPrice!).toList();
     }
 
-    // Condition filter
     if (_conditionFilter != null) {
       result =
           result.where((p) => p.condition == _conditionFilter).toList();
     }
 
-    // Sorting
     switch (_sortBy) {
       case ProductSort.newest:
         result.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -103,24 +103,42 @@ class ProductProvider with ChangeNotifier {
 
   int get filteredCount => filteredProducts.length;
 
-  List<Product> get favoriteProducts => _db.getFavoriteProducts();
-  int get favoritesCount => _db.getFavoriteIds().length;
+  List<Product> get favoriteProducts {
+    final favIds = _localDb.getFavoriteIds();
+    return _allProducts.where((p) => favIds.contains(p.id)).toList();
+  }
 
-  // ===== LOAD =====
+  int get favoritesCount => _localDb.getFavoriteIds().length;
+
+  // ===== LOAD with real-time stream =====
   Future<void> loadProducts() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      if (!_db.hasSeeded) {
+      // Check if Firestore is empty; if yes, seed initial data once
+      final existing = await _firestore.fetchAllProducts();
+      if (existing.isEmpty) {
         await _seedInitialData();
-        await _db.markSeeded();
       }
-      _allProducts = _db.getAllProducts();
+
+      // Subscribe to real-time updates from Firestore
+      _productsSubscription?.cancel();
+      _productsSubscription = _firestore.streamAllProducts().listen(
+        (products) {
+          _allProducts = products;
+          _isLoading = false;
+          notifyListeners();
+        },
+        onError: (error) {
+          _errorMessage = 'Failed to sync products: $error';
+          _isLoading = false;
+          notifyListeners();
+        },
+      );
     } catch (e) {
       _errorMessage = 'Failed to load products: $e';
-    } finally {
       _isLoading = false;
       notifyListeners();
     }
@@ -175,15 +193,16 @@ class ProductProvider with ChangeNotifier {
       ),
     ];
 
-    await _db.insertMultipleProducts(demoProducts);
+    for (final p in demoProducts) {
+      await _firestore.addProduct(p);
+    }
   }
 
-  // ===== CRUD =====
+  // ===== CRUD via Firestore =====
   Future<bool> addProduct(Product product) async {
     try {
-      await _db.insertProduct(product);
-      _allProducts = _db.getAllProducts();
-      notifyListeners();
+      await _firestore.addProduct(product);
+      // No need to manually update _allProducts - the stream will handle it!
       return true;
     } catch (e) {
       _errorMessage = 'Failed to add product: $e';
@@ -194,9 +213,7 @@ class ProductProvider with ChangeNotifier {
 
   Future<bool> updateProduct(Product product) async {
     try {
-      await _db.updateProduct(product);
-      _allProducts = _db.getAllProducts();
-      notifyListeners();
+      await _firestore.updateProduct(product);
       return true;
     } catch (e) {
       _errorMessage = 'Failed to update product: $e';
@@ -207,9 +224,8 @@ class ProductProvider with ChangeNotifier {
 
   Future<bool> deleteProduct(String productId) async {
     try {
-      await _db.deleteProduct(productId);
-      _allProducts = _db.getAllProducts();
-      notifyListeners();
+      await _firestore.deleteProduct(productId);
+      await _localDb.removeFavorite(productId);
       return true;
     } catch (e) {
       _errorMessage = 'Failed to delete product: $e';
@@ -218,8 +234,8 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  List<Product> getProductsBySeller(String sellerId) {
-    return _db.getProductsBySeller(sellerId);
+  Future<List<Product>> getProductsBySeller(String sellerId) async {
+    return await _firestore.fetchProductsBySeller(sellerId);
   }
 
   // ===== FILTERS =====
@@ -262,11 +278,18 @@ class ProductProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // ===== FAVORITES =====
-  bool isFavorite(Product product) => _db.isFavorite(product.id);
+  // ===== FAVORITES (local) =====
+  bool isFavorite(Product product) => _localDb.isFavorite(product.id);
 
   Future<void> toggleFavorite(Product product) async {
-    await _db.toggleFavorite(product.id);
+    await _localDb.toggleFavorite(product.id);
     notifyListeners();
+  }
+
+  // ===== CLEANUP =====
+  @override
+  void dispose() {
+    _productsSubscription?.cancel();
+    super.dispose();
   }
 }
