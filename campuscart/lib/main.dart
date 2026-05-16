@@ -1,13 +1,15 @@
 // ============================================================
 // CampusCart - Entry Point
 // Team: DevDynasty
-// Phase 5: Added favorites route
+// Phase 6: Added Firebase initialization
 // ============================================================
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
 
+import 'firebase_options.dart';
 import 'theme/app_theme.dart';
 import 'models/product.dart';
 import 'providers/product_provider.dart';
@@ -24,11 +26,15 @@ import 'screens/favorites_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // ===== INITIALIZE FIREBASE =====
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   // ===== INITIALIZE HIVE =====
   await Hive.initFlutter();
   Hive.registerAdapter(ProductAdapter());
 
-  // Open all boxes the app needs
   await Hive.openBox<Product>('products');
   await Hive.openBox('meta');
   await Hive.openBox<String>('favorites');

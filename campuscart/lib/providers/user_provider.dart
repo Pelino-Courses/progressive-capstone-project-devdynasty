@@ -1,25 +1,38 @@
 // ============================================================
-// Phase 2 - State Management
+// CampusCart - Phase 6 (Firebase Authentication)
 // File: user_provider.dart
-// Purpose: Holds the currently logged-in user. Other screens
-//          read from this instead of using hardcoded data.
-//          Will be wired to Firebase Auth in Phase 6.
+// Purpose: Real user authentication via Firebase.
 // ============================================================
 
 import 'package:flutter/foundation.dart';
-import '../models/user.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
+import '../models/user.dart' as app_user;
 
 class UserProvider with ChangeNotifier {
-  // ===== PRIVATE STATE =====
-  User? _currentUser;
-  bool _isLoading = false;
+  final fb.FirebaseAuth _auth = fb.FirebaseAuth.instance;
 
-  // ===== PUBLIC GETTERS =====
-  User? get currentUser => _currentUser;
+  app_user.User? _currentUser;
+  bool _isLoading = false;
+  String? _lastError;
+
+  UserProvider() {
+    // Listen for Firebase auth state changes (auto sign-in on app start)
+    _auth.authStateChanges().listen((fb.User? firebaseUser) {
+      if (firebaseUser != null) {
+        _currentUser = _mapFirebaseUser(firebaseUser);
+      } else {
+        _currentUser = null;
+      }
+      notifyListeners();
+    });
+  }
+
+  // ===== GETTERS =====
+  app_user.User? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _currentUser != null;
+  String? get lastError => _lastError;
 
-  // Convenient getters for common user fields (returns sensible defaults)
   String get userName => _currentUser?.fullName ?? 'Guest';
   String get userEmail => _currentUser?.email ?? '';
   String get userUniversity => _currentUser?.university ?? '';
@@ -27,33 +40,42 @@ class UserProvider with ChangeNotifier {
 
   // ===== ACTIONS =====
 
-  // Simulate signing in (will be replaced with Firebase Auth in Phase 6)
+  // Sign in with email + password via Firebase
   Future<bool> signIn(String email, String password) async {
     _isLoading = true;
+    _lastError = null;
     notifyListeners();
 
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
-
-    // For now, accept any valid email + password >= 6 chars
-    if (email.isNotEmpty && password.length >= 6) {
-      _currentUser = User(
-        id: 'U_${DateTime.now().millisecondsSinceEpoch}',
-        fullName: _extractNameFromEmail(email),
-        email: email,
-        university: 'University of Rwanda',
+    try {
+      final credential = await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
       );
+
+      if (credential.user != null) {
+        _currentUser = _mapFirebaseUser(credential.user!);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+
       _isLoading = false;
       notifyListeners();
-      return true;
+      return false;
+    } on fb.FirebaseAuthException catch (e) {
+      _lastError = _friendlyAuthError(e);
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _lastError = 'An unexpected error occurred. Please try again.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
-
-    _isLoading = false;
-    notifyListeners();
-    return false;
   }
 
-  // Simulate registering a new user
+  // Register a new user with Firebase
   Future<bool> signUp({
     required String fullName,
     required String email,
@@ -61,37 +83,66 @@ class UserProvider with ChangeNotifier {
     required String password,
   }) async {
     _isLoading = true;
+    _lastError = null;
     notifyListeners();
 
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
 
-    _currentUser = User(
-      id: 'U_${DateTime.now().millisecondsSinceEpoch}',
-      fullName: fullName,
-      email: email,
-      university: university,
-    );
+      if (credential.user != null) {
+        // Save the user's full name in Firebase Auth profile
+        await credential.user!.updateDisplayName(fullName);
 
-    _isLoading = false;
-    notifyListeners();
-    return true;
+        // Reload to get the updated profile
+        await credential.user!.reload();
+        final updatedUser = _auth.currentUser;
+
+        _currentUser = app_user.User(
+          id: updatedUser?.uid ?? credential.user!.uid,
+          fullName: fullName,
+          email: email.trim(),
+          university: university,
+        );
+
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } on fb.FirebaseAuthException catch (e) {
+      _lastError = _friendlyAuthError(e);
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _lastError = 'An unexpected error occurred. Please try again.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   // Sign out
   Future<void> signOut() async {
+    await _auth.signOut();
     _currentUser = null;
     notifyListeners();
   }
 
-  // Update user profile (e.g. from edit profile screen)
+  // Update user profile
   void updateProfile({
     String? fullName,
     String? university,
     String? profilePicture,
   }) {
     if (_currentUser == null) return;
-
-    _currentUser = User(
+    _currentUser = app_user.User(
       id: _currentUser!.id,
       fullName: fullName ?? _currentUser!.fullName,
       email: _currentUser!.email,
@@ -101,8 +152,48 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Helper - extract a display name from an email
+  // ===== HELPERS =====
+
+  // Convert a Firebase user to our app's User model
+  app_user.User _mapFirebaseUser(fb.User firebaseUser) {
+    return app_user.User(
+      id: firebaseUser.uid,
+      fullName: firebaseUser.displayName ?? _extractNameFromEmail(firebaseUser.email ?? ''),
+      email: firebaseUser.email ?? '',
+      university: 'University of Rwanda', // default - real value comes from Firestore in Phase 7
+    );
+  }
+
+  // Convert Firebase error codes to user-friendly messages
+  String _friendlyAuthError(fb.FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-email':
+        return 'The email address is not valid.';
+      case 'user-disabled':
+        return 'This account has been disabled.';
+      case 'user-not-found':
+        return 'No account found with this email.';
+      case 'wrong-password':
+        return 'Incorrect password. Please try again.';
+      case 'invalid-credential':
+        return 'Invalid email or password.';
+      case 'email-already-in-use':
+        return 'This email is already registered. Try signing in.';
+      case 'operation-not-allowed':
+        return 'Email/Password sign-in is not enabled.';
+      case 'weak-password':
+        return 'Password is too weak. Use 6+ characters.';
+      case 'network-request-failed':
+        return 'Network error. Check your internet connection.';
+      case 'too-many-requests':
+        return 'Too many failed attempts. Try again later.';
+      default:
+        return e.message ?? 'Authentication failed: ${e.code}';
+    }
+  }
+
   String _extractNameFromEmail(String email) {
+    if (email.isEmpty) return 'User';
     final namePart = email.split('@').first;
     return namePart
         .split(RegExp(r'[._-]'))
