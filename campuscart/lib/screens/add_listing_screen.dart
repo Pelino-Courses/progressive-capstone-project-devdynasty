@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/product.dart';
 import '../providers/product_provider.dart';
+import '../providers/user_provider.dart';
 import '../theme/app_theme.dart';
 
 class AddListingScreen extends StatefulWidget {
@@ -192,6 +193,10 @@ class _AddListingScreenState extends State<AddListingScreen> {
 
     setState(() => _isSubmitting = true);
 
+    // Phase 9: the seller is the real logged-in user, so chat
+    // messages reach the right person. (Was hardcoded before.)
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
     // Phase 8: build the product WITHOUT bundling image bytes.
     // The bytes are uploaded separately to Firebase Storage.
     final newProduct = Product(
@@ -201,8 +206,12 @@ class _AddListingScreenState extends State<AddListingScreen> {
       priceInRwf: int.parse(_priceController.text.trim()),
       category: _selectedCategory!,
       condition: _selectedCondition!,
-      sellerId: 'S001',
-      sellerName: 'You',
+      sellerId: userProvider.userId.isNotEmpty
+          ? userProvider.userId
+          : 'S001',
+      sellerName: userProvider.userName != 'Guest'
+          ? userProvider.userName
+          : 'You',
       location: _locationController.text.trim(),
     );
 

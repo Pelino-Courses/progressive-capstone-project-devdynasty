@@ -1,7 +1,8 @@
 // ============================================================
-// CampusCart - Refactored in Phase 4 (with image display)
+// CampusCart - Refactored in Phase 4, Phase 8, Phase 9
 // File: product_details_screen.dart
-// Purpose: Product details with edit/delete actions and image.
+// Purpose: Product details with edit/delete, image display,
+//          and (Phase 9) a working "Chat Seller" button.
 // ============================================================
 
 import 'dart:typed_data';
@@ -9,7 +10,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../providers/product_provider.dart';
+import '../providers/user_provider.dart';
+import '../services/chat_service.dart';
 import '../theme/app_theme.dart';
+import 'conversation_screen.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
   const ProductDetailsScreen({super.key});
@@ -56,6 +60,53 @@ class ProductDetailsScreen extends StatelessWidget {
             child: const Text('Delete'),
           ),
         ],
+      ),
+    );
+  }
+
+  // Phase 9: open a real chat thread with this product's seller.
+  void _openChat(BuildContext context, Product product) {
+    final userProvider = context.read<UserProvider>();
+    final myId = userProvider.userId;
+    final myName = userProvider.userName;
+
+    // Must be signed in to chat.
+    if (myId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please sign in to chat.')),
+      );
+      return;
+    }
+
+    // Don't let a seller open a chat with themselves.
+    if (myId == product.sellerId) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('This is your own listing.')),
+      );
+      return;
+    }
+
+    final chatService = ChatService();
+    // The current user is the buyer; the listing owner is the seller.
+    final chatId = chatService.buildChatId(
+      userA: myId,
+      userB: product.sellerId,
+      productId: product.id,
+    );
+
+    Navigator.pushNamed(
+      context,
+      '/conversation',
+      arguments: ConversationArgs(
+        chatId: chatId,
+        otherUserName: product.sellerName,
+        productTitle: product.title,
+        buyerId: myId,
+        buyerName: myName,
+        sellerId: product.sellerId,
+        sellerName: product.sellerName,
+        productId: product.id,
       ),
     );
   }
@@ -291,13 +342,7 @@ class ProductDetailsScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text(
-                              'Opening chat with ${product.sellerName}...')),
-                    );
-                  },
+                  onPressed: () => _openChat(context, product),
                   icon: const Icon(Icons.chat_outlined),
                   label: const Text('Chat Seller'),
                   style: OutlinedButton.styleFrom(

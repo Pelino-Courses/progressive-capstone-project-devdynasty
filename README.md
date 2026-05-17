@@ -169,8 +169,22 @@ extended phase by phase into a full marketplace:
 | 6 | Firebase Authentication | ✅ Done |
 | 7 | Firebase Firestore (cloud database) | ✅ Done |
 | 8 | Firebase Storage (cloud image uploads) | ✅ Done |
-| 9 | Real-time chat between buyers & sellers | ⏳ Next |
-| 10 | Polish, app icon, build APK | ⏳ Planned |
+| 9 | Real-time chat between buyers & sellers | ✅ Done |
+| 10 | Polish, app icon, build APK | ⏳ Next |
+
+### Phase 9 — Real-time Chat
+
+Buyers can message sellers about a product, with messages
+syncing **instantly** via Cloud Firestore. A Messages inbox
+lists every conversation.
+
+- `lib/services/chat_service.dart` — Firestore chat wrapper
+- `lib/screens/conversation_screen.dart` — the live chat thread
+- `lib/screens/messages_screen.dart` — the inbox
+- The "Chat Seller" button on product details now works
+
+> See [`PHASE9_CHAT_SETUP.md`](PHASE9_CHAT_SETUP.md) — no new
+> Firebase setup needed (chat reuses Firestore from Phase 7).
 
 ### Phase 8 — Firebase Storage
 

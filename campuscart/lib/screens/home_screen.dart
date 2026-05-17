@@ -73,6 +73,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          // ===== MESSAGES (Phase 9) =====
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline),
+            tooltip: 'Messages',
+            onPressed: () {
+              Navigator.pushNamed(context, '/messages');
+            },
+          ),
           // ===== FAVORITES BUTTON WITH BADGE =====
           Stack(
             alignment: Alignment.center,

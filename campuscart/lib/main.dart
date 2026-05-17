@@ -22,6 +22,8 @@ import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/favorites_screen.dart';
+import 'screens/messages_screen.dart';
+import 'screens/conversation_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,6 +68,9 @@ class CampusCartApp extends StatelessWidget {
           '/add-listing': (context) => const AddListingScreen(),
           '/profile': (context) => const ProfileScreen(),
           '/favorites': (context) => const FavoritesScreen(),
+          // Phase 9 - Real-time chat
+          '/messages': (context) => const MessagesScreen(),
+          '/conversation': (context) => const ConversationScreen(),
         },
       ),
     );
