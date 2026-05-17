@@ -140,11 +140,15 @@ class ProductDetailsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ===== PRODUCT IMAGE OR ICON =====
-            Container(
-              height: 280,
-              width: double.infinity,
-              color: Colors.grey.shade200,
-              child: _buildDetailImage(product),
+            // Phase 10: matches the Hero tag on ProductCard.
+            Hero(
+              tag: 'product-image-${product.id}',
+              child: Container(
+                height: 280,
+                width: double.infinity,
+                color: Colors.grey.shade200,
+                child: _buildDetailImage(product),
+              ),
             ),
             const SizedBox(height: 16),
             Padding(

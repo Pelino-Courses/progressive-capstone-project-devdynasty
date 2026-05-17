@@ -38,13 +38,18 @@ class ProductCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ===== PRODUCT IMAGE OR ICON =====
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  color: Colors.grey.shade200,
-                  child: _buildThumbnail(),
+              // Phase 10: Hero tag shared with the details screen
+              // for a smooth shared-element transition.
+              Hero(
+                tag: 'product-image-${product.id}',
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    color: Colors.grey.shade200,
+                    child: _buildThumbnail(),
+                  ),
                 ),
               ),
 

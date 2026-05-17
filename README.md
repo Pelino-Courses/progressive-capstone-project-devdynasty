@@ -107,6 +107,21 @@ dart run lib/dart_basics/functions_demo.dart
 dart run lib/part_b_demo.dart
 ```
 
+### Building the release APK (Phase 10)
+```bash
+cd campuscart
+flutter pub get
+
+# one-time, generates the launcher icon and splash screen
+dart run flutter_launcher_icons
+dart run flutter_native_splash:create
+
+# build the installable Android APK
+flutter build apk --release
+```
+The finished APK is written to:
+`build/app/outputs/flutter-apk/app-release.apk`
+
 ---
 
 ## 🎥 Demo Video
@@ -161,7 +176,7 @@ marketplace. Each phase below is a single Git commit.
 | 7 | Firebase Firestore (cloud database) | ✅ Done |
 | 8 | Firebase Storage (cloud image uploads) | ✅ Done |
 | 9 | Real-time chat between buyers & sellers | ✅ Done |
-| 10 | Polish, app icon, build APK | ⏳ Next |
+| 10 | Polish, app icon, build APK | ✅ Done |
 
 ### Phase 1 — Complete the Missing Screens
 
@@ -241,10 +256,24 @@ conversation.
 - **Setup:** none — chat reuses Firestore from Phase 7. Testing
   needs two accounts (run in two windows or as different users).
 
-### Phase 10 — Polish & APK *(planned)*
+### Phase 10 — Polish & APK
 
-Final polish: app icon, splash screen, animations, and building
-a release Android APK.
+Final polish to make the app feel finished:
+- **App icon** — a custom teal shopping-cart launcher icon,
+  generated for Android, iOS, and web via `flutter_launcher_icons`
+  (source art in `assets/icon/`).
+- **Splash screen** — a native splash in the brand teal via
+  `flutter_native_splash`.
+- **Animations** — product cards fade and slide in on the home
+  list (`FadeIn` widget); tapping a product runs a smooth Hero
+  shared-element transition on its image into the details screen.
+- **Naming** — the app now displays as "CampusCart".
+- **Setup:** after `flutter pub get`, run once:
+  `dart run flutter_launcher_icons` and
+  `dart run flutter_native_splash:create`.
+- **Release build:** `flutter build apk --release` produces the
+  installable APK at
+  `build/app/outputs/flutter-apk/app-release.apk`.
 
 ---
 

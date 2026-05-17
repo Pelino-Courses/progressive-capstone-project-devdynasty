@@ -9,6 +9,7 @@ import '../providers/product_provider.dart';
 import '../widgets/product_card.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/filter_modal.dart';
+import '../widgets/fade_in.dart';
 import '../theme/app_theme.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -250,15 +251,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           itemBuilder: (context, index) {
                             final product =
                                 productProvider.filteredProducts[index];
-                            return ProductCard(
-                              product: product,
-                              onTap: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  '/product-details',
-                                  arguments: product,
-                                );
-                              },
+                            // Phase 10: gentle fade-in entrance.
+                            return FadeIn(
+                              child: ProductCard(
+                                product: product,
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    '/product-details',
+                                    arguments: product,
+                                  );
+                                },
+                              ),
                             );
                           },
                         ),
