@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "606855973697",
+    "project_id": "campuscart-devdynasty",
+    "storage_bucket": "campuscart-devdynasty.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:606855973697:android:2e0b228a5fc9e26fd3afc0",
+        "android_client_info": {
+          "package_name": "com.example.campuscart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJkM6sDaUajtvftGkL0Q2S3WYqEsxWlLw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
