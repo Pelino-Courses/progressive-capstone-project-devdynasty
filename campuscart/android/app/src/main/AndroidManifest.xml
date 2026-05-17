@@ -1,4 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Phase 8: required for Firebase Storage uploads/downloads
+         (also covers Firestore/Auth). Flutter adds this in debug
+         automatically, but declaring it here ensures release
+         builds have it too. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:label="campuscart"
         android:name="${applicationName}"

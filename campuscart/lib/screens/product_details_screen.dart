@@ -93,18 +93,7 @@ class ProductDetailsScreen extends StatelessWidget {
               height: 280,
               width: double.infinity,
               color: Colors.grey.shade200,
-              child: product.hasImage
-                  ? Image.memory(
-                      Uint8List.fromList(product.imageBytes!),
-                      width: double.infinity,
-                      height: 280,
-                      fit: BoxFit.cover,
-                    )
-                  : Icon(
-                      _categoryIcon(product.category),
-                      size: 120,
-                      color: AppTheme.primaryColor.withOpacity(0.6),
-                    ),
+              child: _buildDetailImage(product),
             ),
             const SizedBox(height: 16),
             Padding(
@@ -337,6 +326,44 @@ class ProductDetailsScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  // Phase 8: decide what to show for the large product image.
+  // Priority: Firebase Storage URL -> old local bytes -> icon.
+  Widget _buildDetailImage(Product product) {
+    if (product.hasNetworkImage) {
+      return Image.network(
+        product.imageUrl!,
+        width: double.infinity,
+        height: 280,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return const Center(child: CircularProgressIndicator());
+        },
+        errorBuilder: (context, error, stack) => _detailIcon(product),
+      );
+    }
+
+    // Backward compatibility: older products stored raw bytes.
+    if (product.hasImage) {
+      return Image.memory(
+        Uint8List.fromList(product.imageBytes!),
+        width: double.infinity,
+        height: 280,
+        fit: BoxFit.cover,
+      );
+    }
+
+    return _detailIcon(product);
+  }
+
+  Widget _detailIcon(Product product) {
+    return Icon(
+      _categoryIcon(product.category),
+      size: 120,
+      color: AppTheme.primaryColor.withOpacity(0.6),
     );
   }
 

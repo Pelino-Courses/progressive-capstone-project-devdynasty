@@ -154,6 +154,41 @@ dart run lib/part_b_demo.dart
 
 ---
 
+## 🚧 Progressive Capstone — Phase Progress
+
+The Mini-Capstone (Parts A–D) is the foundation. The app is then
+extended phase by phase into a full marketplace:
+
+| Phase | Feature | Status |
+|-------|---------|--------|
+| 1 | Login, Sign Up & Profile screens | ✅ Done |
+| 2 | State management with Provider | ✅ Done |
+| 3 | Local database (Hive) | ✅ Done |
+| 4 | Image upload (gallery + camera) | ✅ Done |
+| 5 | Favorites + advanced search/filters | ✅ Done |
+| 6 | Firebase Authentication | ✅ Done |
+| 7 | Firebase Firestore (cloud database) | ✅ Done |
+| 8 | Firebase Storage (cloud image uploads) | ✅ Done |
+| 9 | Real-time chat between buyers & sellers | ⏳ Next |
+| 10 | Polish, app icon, build APK | ⏳ Planned |
+
+### Phase 8 — Firebase Storage
+
+Product photos are now uploaded to **Firebase Storage** instead
+of being stored as raw bytes inside Firestore documents (which
+have a 1 MB limit). Firestore keeps only a small image URL.
+
+- `lib/services/storage_service.dart` — wraps Firebase Storage
+- `addProductWithImage()` in `ProductProvider` — uploads photo,
+  then saves the product
+- Product images display via `Image.network` from the URL
+
+> **Setup:** see [`PHASE8_FIREBASE_STORAGE_SETUP.md`](PHASE8_FIREBASE_STORAGE_SETUP.md)
+> — just enable Storage in the Firebase console and run
+> `flutter pub get`.
+
+---
+
 ## 🤖 AI Tools Disclosure
 
 As required by the assignment guidelines:

@@ -1,7 +1,15 @@
 // ============================================================
-// CampusCart - Refactored in Phase 4
+// CampusCart - Refactored in Phase 4, Phase 8
 // File: product.dart
-// Purpose: Product class with image data support.
+// Purpose: Product class with image support.
+//
+// Phase 8 note on images:
+//   - imageUrl  -> a Firebase Storage download URL. This is now
+//                  the PRIMARY way images are stored & shown.
+//   - imageBytes-> kept only for backward compatibility (older
+//                  Phase 4-7 products / local picks before
+//                  upload). New products do NOT store bytes in
+//                  the cloud anymore.
 // ============================================================
 
 import 'package:hive/hive.dart';
@@ -64,8 +72,13 @@ class Product extends HiveObject with Rateable, Timestamped {
     this.imageBytes,
   });
 
-  // Returns true if the product has a real image
+  // Returns true if the product has local image bytes
+  // (used during picking, before upload, and for old data).
   bool get hasImage => imageBytes != null && imageBytes!.isNotEmpty;
+
+  // Phase 8: returns true if the product has a Firebase Storage
+  // image URL. This is the preferred image source for display.
+  bool get hasNetworkImage => imageUrl != null && imageUrl!.isNotEmpty;
 
   void markAsSold() {
     isAvailable = false;

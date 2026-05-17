@@ -1,7 +1,9 @@
 // ============================================================
-// PART D - Refactored in Phase 4 (with image picker)
+// PART D - Refactored in Phase 4, Phase 8
 // File: add_listing_screen.dart
-// Purpose: Add new listing form with real image upload.
+// Purpose: Add new listing form. Phase 8: the chosen photo is
+//          uploaded to Firebase Storage (not stored in the
+//          Firestore document).
 // ============================================================
 
 import 'dart:typed_data';
@@ -190,6 +192,8 @@ class _AddListingScreenState extends State<AddListingScreen> {
 
     setState(() => _isSubmitting = true);
 
+    // Phase 8: build the product WITHOUT bundling image bytes.
+    // The bytes are uploaded separately to Firebase Storage.
     final newProduct = Product(
       id: 'P${DateTime.now().millisecondsSinceEpoch}',
       title: _titleController.text.trim(),
@@ -200,12 +204,16 @@ class _AddListingScreenState extends State<AddListingScreen> {
       sellerId: 'S001',
       sellerName: 'You',
       location: _locationController.text.trim(),
-      imageBytes: _selectedImageBytes?.toList(), // 🆕 save image
     );
 
+    // The provider uploads the photo to Storage, then saves
+    // the product (with its image URL) to Firestore.
     final success =
         await Provider.of<ProductProvider>(context, listen: false)
-            .addProduct(newProduct);
+            .addProductWithImage(
+      product: newProduct,
+      imageBytes: _selectedImageBytes,
+    );
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);
@@ -395,13 +403,25 @@ class _AddListingScreenState extends State<AddListingScreen> {
                 minimumSize: const Size.fromHeight(52),
               ),
               child: _isSubmitting
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2.5,
-                      ),
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          _selectedImageBytes != null
+                              ? 'Uploading photo...'
+                              : 'Posting...',
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                      ],
                     )
                   : const Text(
                       'Post Listing',

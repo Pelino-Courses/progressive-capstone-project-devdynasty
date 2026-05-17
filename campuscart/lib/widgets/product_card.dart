@@ -1,5 +1,6 @@
 // ============================================================
 // Phase 5 - ProductCard with favorite (heart) button
+// Updated in Phase 8: shows images from Firebase Storage URLs.
 // File: product_card.dart
 // ============================================================
 
@@ -43,18 +44,7 @@ class ProductCard extends StatelessWidget {
                   width: 80,
                   height: 80,
                   color: Colors.grey.shade200,
-                  child: product.hasImage
-                      ? Image.memory(
-                          Uint8List.fromList(product.imageBytes!),
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                        )
-                      : Icon(
-                          _categoryIcon(product.category),
-                          size: 40,
-                          color: AppTheme.primaryColor,
-                        ),
+                  child: _buildThumbnail(),
                 ),
               ),
 
@@ -173,6 +163,52 @@ class ProductCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  // Phase 8: decide what to show for the product image.
+  // Priority: Firebase Storage URL -> old local bytes -> icon.
+  Widget _buildThumbnail() {
+    if (product.hasNetworkImage) {
+      return Image.network(
+        product.imageUrl!,
+        width: 80,
+        height: 80,
+        fit: BoxFit.cover,
+        // Show a spinner while the image downloads.
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return const Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        },
+        // If the URL fails to load, fall back to the icon.
+        errorBuilder: (context, error, stack) => _categoryIconWidget(),
+      );
+    }
+
+    // Backward compatibility: older products stored raw bytes.
+    if (product.hasImage) {
+      return Image.memory(
+        Uint8List.fromList(product.imageBytes!),
+        width: 80,
+        height: 80,
+        fit: BoxFit.cover,
+      );
+    }
+
+    return _categoryIconWidget();
+  }
+
+  Widget _categoryIconWidget() {
+    return Icon(
+      _categoryIcon(product.category),
+      size: 40,
+      color: AppTheme.primaryColor,
     );
   }
 

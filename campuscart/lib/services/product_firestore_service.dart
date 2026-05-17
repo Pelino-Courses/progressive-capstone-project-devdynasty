@@ -1,7 +1,12 @@
 // ============================================================
-// Phase 7 - Firestore Service
+// Phase 7 - Firestore Service (updated in Phase 8)
 // File: product_firestore_service.dart
 // Purpose: Wrapper around Cloud Firestore for product CRUD.
+//
+// Phase 8 change: we NO LONGER store raw image bytes in the
+// Firestore document. The image now lives in Firebase Storage
+// and the document keeps only a small 'imageUrl' string. This
+// keeps every document well under Firestore's 1 MB limit.
 // ============================================================
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -75,8 +80,10 @@ class ProductFirestoreService {
       'sellerId': product.sellerId,
       'sellerName': product.sellerName,
       'location': product.location,
+      // Phase 8: only the Storage URL is saved - NOT the raw
+      // bytes. imageBytes is intentionally left out to keep the
+      // document small.
       'imageUrl': product.imageUrl,
-      'imageBytes': product.imageBytes, // stored as List<int>
       'isAvailable': product.isAvailable,
       'createdAt': product.createdAt.toIso8601String(),
     };
@@ -96,6 +103,9 @@ class ProductFirestoreService {
       location: map['location'] as String,
       imageUrl: map['imageUrl'] as String?,
       isAvailable: map['isAvailable'] as bool? ?? true,
+      // Phase 8: older documents (Phase 4-7) may still contain
+      // 'imageBytes'. We still read it so old products keep
+      // showing, but new products won't have it.
       imageBytes: (map['imageBytes'] as List?)?.cast<int>(),
     );
     return product;

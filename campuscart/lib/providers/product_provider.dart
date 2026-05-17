@@ -1,15 +1,19 @@
 // ============================================================
-// CampusCart - Phase 7 (Firestore-backed products)
+// CampusCart - Phase 7 (Firestore), updated in Phase 8
 // File: product_provider.dart
-// Purpose: Products now sync via Cloud Firestore in real-time.
+// Purpose: Products sync via Cloud Firestore in real-time.
+//          Phase 8: product images are uploaded to Firebase
+//          Storage; only the image URL is kept in Firestore.
 //          Favorites still use local Hive.
 // ============================================================
 
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import '../models/product.dart';
 import '../database/product_database.dart';
 import '../services/product_firestore_service.dart';
+import '../services/storage_service.dart';
 
 enum ProductSort {
   newest,
@@ -21,6 +25,7 @@ enum ProductSort {
 class ProductProvider with ChangeNotifier {
   final ProductDatabase _localDb = ProductDatabase(); // for favorites only
   final ProductFirestoreService _firestore = ProductFirestoreService();
+  final StorageService _storage = StorageService(); // Phase 8: image uploads
 
   StreamSubscription<List<Product>>? _productsSubscription;
 
@@ -211,6 +216,37 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
+  // Phase 8: add a product WITH a photo.
+  // Flow: upload the image to Firebase Storage -> get a URL ->
+  // save the product (carrying that URL) to Firestore.
+  // If [imageBytes] is null, this behaves like a normal add.
+  Future<bool> addProductWithImage({
+    required Product product,
+    Uint8List? imageBytes,
+  }) async {
+    try {
+      Product productToSave = product;
+
+      if (imageBytes != null && imageBytes.isNotEmpty) {
+        // 1. Upload the photo to Firebase Storage.
+        final downloadUrl = await _storage.uploadProductImage(
+          productId: product.id,
+          imageBytes: imageBytes,
+        );
+        // 2. Attach the URL to the product before saving.
+        productToSave.imageUrl = downloadUrl;
+      }
+
+      // 3. Save to Firestore (the real-time stream updates the UI).
+      await _firestore.addProduct(productToSave);
+      return true;
+    } catch (e) {
+      _errorMessage = 'Failed to add product: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<bool> updateProduct(Product product) async {
     try {
       await _firestore.updateProduct(product);
@@ -226,6 +262,9 @@ class ProductProvider with ChangeNotifier {
     try {
       await _firestore.deleteProduct(productId);
       await _localDb.removeFavorite(productId);
+      // Phase 8: also remove the product's image from Storage
+      // so we don't leave orphaned files in the bucket.
+      await _storage.deleteProductImage(productId);
       return true;
     } catch (e) {
       _errorMessage = 'Failed to delete product: $e';
